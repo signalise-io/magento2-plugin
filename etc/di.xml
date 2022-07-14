@@ -3,7 +3,7 @@
 	<type name="Magento\Framework\Console\CommandList">
 		<arguments>
 			<argument name="commands" xsi:type="array">
-				<item name="push" xsi:type="object">Signalise\Plugin\Console\Command\Push</item>
+				<item name="fill-queue" xsi:type="object">Signalise\Plugin\Console\Command\FillQueue</item>
 			</argument>
 		</arguments>
 	</type>
