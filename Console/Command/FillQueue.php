@@ -10,11 +10,11 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class Push extends Command
+class FillQueue extends Command
 {
 
-    const NAME_ARGUMENT = "name";
-    const NAME_OPTION = "option";
+    const NAME_ARGUMENT = 'name';
+    const NAME_OPTION = 'option';
 
     /**
      * {@inheritdoc}
@@ -25,7 +25,7 @@ class Push extends Command
     ) {
         $name = $input->getArgument(self::NAME_ARGUMENT);
         $option = $input->getOption(self::NAME_OPTION);
-        $output->writeln("Hello " . $name);
+        $output->writeln('Hello ' . $name);
     }
 
     /**
@@ -33,11 +33,11 @@ class Push extends Command
      */
     protected function configure()
     {
-        $this->setName("signalise_plugin:push");
-        $this->setDescription("Push order data to Signalise");
+        $this->setName('signalise:fill-queue');
+        $this->setDescription('Fill queue to sync orders to Signalise');
         $this->setDefinition([
-            new InputArgument(self::NAME_ARGUMENT, InputArgument::OPTIONAL, "Name"),
-            new InputOption(self::NAME_OPTION, "-a", InputOption::VALUE_NONE, "Option functionality")
+            new InputArgument(self::NAME_ARGUMENT, InputArgument::OPTIONAL, 'Name'),
+            new InputOption(self::NAME_OPTION, '-a', InputOption::VALUE_NONE, 'Option functionality')
         ]);
         parent::configure();
     }
