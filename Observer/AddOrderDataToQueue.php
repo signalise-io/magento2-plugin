@@ -31,7 +31,7 @@ class AddOrderDataToQueue implements \Magento\Framework\Event\ObserverInterface
         \Magento\Framework\Event\Observer $observer
     ) {
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $observer->getOrder();
+        $order = $observer->getOrder() ?? $observer->getInvoice()->getOrder();
         $dto = new DataObject();
         $dto->setData([
             'id' => $order->getIncrementId(),
