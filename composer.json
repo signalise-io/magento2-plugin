@@ -1,12 +1,12 @@
 {
-    "name": "signalise/module-plugin",
+    "name": "signalise/magento2-plugin",
     "description": "Signalise plugin",
     "type": "magento2-module",
     "license": "GPL-3.0",
     "authors": [
         {
-            "name": "Mage2Gen",
-            "email": "info@mage2gen.com"
+            "name": "elgentos",
+            "email": "info@elgentos.nl"
         }
     ],
     "minimum-stability": "dev",
