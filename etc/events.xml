@@ -1,9 +1,9 @@
 <?xml version="1.0" ?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
 	<event name="sales_order_place_after">
-		<observer name="signalise_sales_order_place_after" instance="Signalise\Plugin\Observer\Sales\OrderPlaceAfterObserver"/>
+		<observer name="order_place_after_observer" instance="Signalise\Plugin\Observer\Sales\OrderPlaceAfterObserver"/>
 	</event>
     <event name="sales_order_payment_pay">
-        <observer name="signalise_sales_order_payment_pay" instance="Signalise\Plugin\Observer\Sales\OrderPaymentPayObserver"/>
+        <observer name="order_payment_pay_observer" instance="Signalise\Plugin\Observer\Sales\OrderPaymentPayObserver"/>
     </event>
 </config>

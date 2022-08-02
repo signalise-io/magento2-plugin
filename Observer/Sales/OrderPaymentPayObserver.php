@@ -32,7 +32,7 @@ class OrderPaymentPayObserver
         Observer $observer
     ): void {
         /** @var Order $order */
-        $order = $observer->getInvoice()->getOrder();
+        $order = $observer->getEvent()->getInvoice()->getOrder();
 
         $dto = $this->orderDataObjectHelper->create($order);
 

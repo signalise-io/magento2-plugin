@@ -27,13 +27,13 @@ class OrderPlaceAfterObserver implements ObserverInterface
      * Execute observer
      *
      * @param Observer $observer
-     * @return void
+     * @return string
      */
     public function execute(
         Observer $observer
     ): void {
         /** @var Order $order */
-        $order = $observer->getOrder();
+        $order = $observer->getEvent()->getOrder();
 
         $dto = $this->orderDataObjectHelper->create($order);
 

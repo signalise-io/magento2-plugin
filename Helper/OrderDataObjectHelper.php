@@ -16,8 +16,8 @@ class OrderDataObjectHelper
         return $dto->setData([
             'id' => $order->getIncrementId(),
             'store' => $order->getStore()->getCode(),
-            'payment_method' => $order->getPayment()?->getMethod()?->getCode(),
-            'shipping_method' => $order->getShippingMethod()->getCarrierCode(),
+            'payment_method' => $order->getPayment()->getMethod(),
+            'shipping_method' => $order->getShippingMethod(),
             'grand_total' => $order->getGrandTotal(),
             'base_grand_total' => $order->getBaseGrandTotal(),
             'shipping_amount' => $order->getShippingAmount(),
