@@ -8,9 +8,12 @@ use Magento\Framework\Event\Observer;
 use Magento\Sales\Model\Order;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 use Signalise\Plugin\Publisher\OrderPublisher;
+use Signalise\Plugin\Traits\AuthorizeObserver;
 
 class OrderPaymentPayObserver
 {
+    use AuthorizeObserver;
+
     private OrderPublisher $orderPublisher;
     private OrderDataObjectHelper $orderDataObjectHelper;
 
@@ -31,6 +34,10 @@ class OrderPaymentPayObserver
     public function execute(
         Observer $observer
     ): void {
+        if(!self::authorize($observer->getEvent()->getName())) {
+            return;
+        }
+
         /** @var Order $order */
         $order = $observer->getEvent()->getInvoice()->getOrder();
 

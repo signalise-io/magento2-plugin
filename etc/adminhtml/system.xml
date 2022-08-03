@@ -4,15 +4,19 @@
         <tab id="signalise" translate="label" sortOrder="250">
             <label>signalise</label>
         </tab>
-        <section id="signalise_plugin" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="signalise_api_settings" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1">
             <resource>Signalise_Plugin::config</resource>
             <label>Signalise Api Settings</label>
             <tab>signalise</tab>
-            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="0" showInStore="0">
+            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Signalise Api Settings</label>
                 <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Api key</label>
                     <comment>Enter your api key to connect with Signalise</comment>
+                </field>
+                <field id="active_events" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Active Events</label>
+                    <source_model>Signalise\Plugin\Model\Config\Source\Events</source_model>
                 </field>
             </group>
         </section>

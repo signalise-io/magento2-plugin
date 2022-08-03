@@ -9,9 +9,12 @@ use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 use Signalise\Plugin\Publisher\OrderPublisher;
+use Signalise\Plugin\Traits\AuthorizeObserver;
 
 class OrderPlaceAfterObserver implements ObserverInterface
 {
+    use AuthorizeObserver;
+
     private OrderPublisher $orderPublisher;
     private OrderDataObjectHelper $orderDataObjectHelper;
 
@@ -27,11 +30,15 @@ class OrderPlaceAfterObserver implements ObserverInterface
      * Execute observer
      *
      * @param Observer $observer
-     * @return string
+     * @return void
      */
     public function execute(
         Observer $observer
     ): void {
+        if(!self::authorize($observer->getEvent()->getName())) {
+            return;
+        }
+
         /** @var Order $order */
         $order = $observer->getEvent()->getOrder();
 
