@@ -4,13 +4,49 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Model;
 
-use Magento\Framework\DataObject;
+use Exception;
+use Magento\Framework\HTTP\AsyncClient\GuzzleAsyncClient;
+use Magento\Framework\HTTP\AsyncClient\Request;
 
 class signaliseApiClient
 {
-    public function pushData($dataObject): void
+    private GuzzleAsyncClient $client;
+    private SignaliseConfig $signaliseConfig;
+
+    public function __construct(GuzzleAsyncClient $client, SignaliseConfig $signaliseConfig)
     {
-        //@ todo send data to rest api
-       dd($dataObject);
+        $this->client = $client;
+        $this->signaliseConfig = $signaliseConfig;
+    }
+
+    private function apiKey(): string
+    {
+        return $this->signaliseConfig->getApiKey();
+    }
+
+    private function createRequest(string $serializedData): Request
+    {
+        return new Request(
+            $this->apiKey(),
+            Request::METHOD_POST, [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json'
+        ],
+            $serializedData
+        );
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function pushData(string $serializedData): void
+    {
+        try {
+            $this->client->request(
+                $this->createRequest($serializedData)
+            );
+        } catch (Exception $exception) {
+            Throw new Exception($exception->getMessage());
+        }
     }
 }
