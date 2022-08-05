@@ -5,25 +5,24 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Model\Config\Source;
 
 use Magento\Framework\Data\OptionSourceInterface;
-use Signalise\Plugin\Model\Config\RegisteredEvents;
 
 class Events implements OptionSourceInterface
 {
-    private RegisteredEvents $registeredEvents;
+    private array $events;
 
-    public function __construct(RegisteredEvents $registeredEvents)
+    public function __construct(array $events = [])
     {
-        $this->registeredEvents = $registeredEvents;
+        $this->events = $events;
     }
 
     public function toOptionArray(): array
     {
         $options = [];
 
-        foreach ($this->registeredEvents->getRegisteredEvents() as $event) {
+        foreach ($this->events as $event => $label) {
             $options[] = [
                 'value' => $event,
-                'label' => ucfirst(str_replace('_', ' ', $event))
+                'label' => $label
             ];
         }
 
