@@ -18,14 +18,16 @@ class OrderPublisher
     public function __construct(
         Json $json,
         PublisherInterface $publisher
-    )
-    {
+    ) {
         $this->json = $json;
         $this->publisher = $publisher;
     }
 
-    public function execute(DataObject $orderDataObject)
+    public function execute(DataObject $orderDataObject, string $eventName)
     {
-        return $this->publisher->publish(self::TOPIC_NAME, $this->json->serialize($orderDataObject->getData()));
+        return $this->publisher->publish(
+            self::TOPIC_NAME,
+            $this->json->serialize([$orderDataObject->getData(), $eventName])
+        );
     }
 }

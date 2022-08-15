@@ -8,22 +8,31 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
+use Signalise\Plugin\Model\SignaliseConfig;
 use Signalise\Plugin\Publisher\OrderPublisher;
-use Signalise\Plugin\Traits\AuthorizeObserver;
 
 class OrderPlaceAfterObserver implements ObserverInterface
 {
-    use AuthorizeObserver;
-
     private OrderPublisher $orderPublisher;
     private OrderDataObjectHelper $orderDataObjectHelper;
+    private SignaliseConfig $signaliseConfig;
 
     public function __construct(
         OrderPublisher $orderPublisher,
-        OrderDataObjectHelper $orderDataObjectHelper
+        OrderDataObjectHelper $orderDataObjectHelper,
+        SignaliseConfig $signaliseConfig
     ) {
         $this->orderPublisher = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
+        $this->signaliseConfig = $signaliseConfig;
+    }
+
+    private function authorize(string $eventName): bool
+    {
+        return in_array(
+            $eventName,
+            $this->signaliseConfig->getActiveEvents()
+        );
     }
 
     /**
@@ -35,7 +44,8 @@ class OrderPlaceAfterObserver implements ObserverInterface
     public function execute(
         Observer $observer
     ): void {
-        if(!self::authorize($observer->getEvent()->getName())) {
+        $eventName = $observer->getEvent()->getName();
+        if(!$this->authorize($eventName)) {
             return;
         }
 
@@ -44,6 +54,6 @@ class OrderPlaceAfterObserver implements ObserverInterface
 
         $dto = $this->orderDataObjectHelper->create($order);
 
-        $this->orderPublisher->execute($dto);
+        $this->orderPublisher->execute($dto, $eventName);
     }
 }

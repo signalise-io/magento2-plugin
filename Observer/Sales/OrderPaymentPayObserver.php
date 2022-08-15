@@ -5,24 +5,34 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Observer\Sales;
 
 use Magento\Framework\Event\Observer;
+use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
+use Signalise\Plugin\Model\SignaliseConfig;
 use Signalise\Plugin\Publisher\OrderPublisher;
-use Signalise\Plugin\Traits\AuthorizeObserver;
 
-class OrderPaymentPayObserver
+class OrderPaymentPayObserver implements ObserverInterface
 {
-    use AuthorizeObserver;
-
     private OrderPublisher $orderPublisher;
     private OrderDataObjectHelper $orderDataObjectHelper;
+    private SignaliseConfig $signaliseConfig;
 
     public function __construct(
         OrderPublisher $orderPublisher,
-        OrderDataObjectHelper $orderDataObjectHelper
+        OrderDataObjectHelper $orderDataObjectHelper,
+        SignaliseConfig $signaliseConfig
     ) {
         $this->orderPublisher = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
+        $this->signaliseConfig = $signaliseConfig;
+    }
+
+    private function authorize(string $eventName): bool
+    {
+        return in_array(
+            $eventName,
+            $this->signaliseConfig->getActiveEvents()
+        );
     }
 
     /**
@@ -34,15 +44,16 @@ class OrderPaymentPayObserver
     public function execute(
         Observer $observer
     ): void {
-        if(!self::authorize($observer->getEvent()->getName())) {
+        $eventName = $observer->getEvent()->getName();
+        if(!$this->authorize($eventName)) {
             return;
         }
 
         /** @var Order $order */
-        $order = $observer->getEvent()->getInvoice()->getOrder();
+        $order = $observer->getEvent()->getOrder() ?? $observer->getEvent()->getInvoice()->getOrder();
 
         $dto = $this->orderDataObjectHelper->create($order);
 
-        $this->orderPublisher->execute($dto);
+        $this->orderPublisher->execute($dto, $eventName);
     }
 }
