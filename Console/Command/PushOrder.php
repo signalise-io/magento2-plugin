@@ -45,8 +45,7 @@ class PushOrder extends Command
         OrderDataObjectHelper $orderDataObjectHelper,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
-    )
-    {
+    ) {
         parent::__construct($name);
         $this->setDescription($description);
         $this->orderRepository = $orderRepository;
@@ -85,7 +84,6 @@ class PushOrder extends Command
             $this->signaliseConfig->getActiveEvents()
         );
     }
-
 
     /**
      * @throws LocalizedException
@@ -139,4 +137,3 @@ class PushOrder extends Command
         );
     }
 }
-

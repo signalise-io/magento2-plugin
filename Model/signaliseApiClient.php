@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Model;
 
 use Exception;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\AsyncClient\GuzzleAsyncClient;
 use Magento\Framework\HTTP\AsyncClient\Request;
 
 class signaliseApiClient
 {
     private GuzzleAsyncClient $client;
+
     private SignaliseConfig $signaliseConfig;
 
     public function __construct(GuzzleAsyncClient $client, SignaliseConfig $signaliseConfig)
@@ -19,11 +21,17 @@ class signaliseApiClient
         $this->signaliseConfig = $signaliseConfig;
     }
 
+    /**
+     * @throws LocalizedException
+     */
     private function apiKey(): string
     {
         return $this->signaliseConfig->getApiKey();
     }
 
+    /**
+     * @throws LocalizedException
+     */
     private function createRequest(string $serializedData): Request
     {
         return new Request(

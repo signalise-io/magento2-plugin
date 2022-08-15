@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Model;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 
@@ -20,13 +21,24 @@ class SignaliseConfig
         $this->scopeConfig = $scopeConfig;
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function getApiKey(): string
     {
-        return $this->scopeConfig->getValue(
+        $apiKey = $this->scopeConfig->getValue(
             self::XML_PATH_API_KEY,
             ScopeInterface::SCOPE_STORE,
             Store::DEFAULT_STORE_ID
         );
+
+        if(empty($apiKey)) {
+            throw new LocalizedException(
+                __('Api key has not been configured.')
+            );
+        }
+
+        return $apiKey;
     }
 
     public function getActiveEvents(): array

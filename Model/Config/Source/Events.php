@@ -10,8 +10,9 @@ class Events implements OptionSourceInterface
 {
     private array $events;
 
-    public function __construct(array $events = [])
-    {
+    public function __construct(
+        array $events = []
+    ) {
         $this->events = $events;
     }
 

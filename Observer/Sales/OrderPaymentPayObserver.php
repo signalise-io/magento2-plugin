@@ -14,7 +14,9 @@ use Signalise\Plugin\Publisher\OrderPublisher;
 class OrderPaymentPayObserver implements ObserverInterface
 {
     private OrderPublisher $orderPublisher;
+
     private OrderDataObjectHelper $orderDataObjectHelper;
+
     private SignaliseConfig $signaliseConfig;
 
     public function __construct(
