@@ -9,7 +9,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\HTTP\AsyncClient\GuzzleAsyncClient;
 use Magento\Framework\HTTP\AsyncClient\Request;
 
-class signaliseApiClient
+class SignaliseApiClient
 {
     private GuzzleAsyncClient $client;
 

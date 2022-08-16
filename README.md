@@ -11,8 +11,3 @@ and push data to the Signalise queue when the events get triggered.
 
 - ``sales_order_place_after``
 - ``sales_order_payment_pay``
-
-
-
-
-

@@ -3,14 +3,14 @@
 namespace Signalise\Plugin\Consumer;
 
 use Exception;
-use Signalise\Plugin\Model\signaliseApiClient;
+use Signalise\Plugin\Model\SignaliseApiClient;
 
 class OrderConsumer
 {
-    private signaliseApiClient $signaliseApiClient;
+    private SignaliseApiClient $signaliseApiClient;
 
     public function __construct(
-        signaliseApiClient $signaliseApiClient
+        SignaliseApiClient $signaliseApiClient
     ) {
         $this->signaliseApiClient = $signaliseApiClient;
     }

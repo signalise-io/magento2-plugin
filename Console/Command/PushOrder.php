@@ -7,6 +7,7 @@ namespace Signalise\Plugin\Console\Command;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Symfony\Component\Console\Command\Command;
@@ -28,10 +29,13 @@ class PushOrder extends Command
 
     private OrderDataObjectHelper $orderDataObjectHelper;
 
+    private CollectionFactory $collectionFactory;
+
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
+        CollectionFactory $collectionFactory,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -40,13 +44,14 @@ class PushOrder extends Command
         $this->orderRepository = $orderRepository;
         $this->orderPublisher = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
+        $this->collectionFactory = $collectionFactory;
     }
 
     protected function configure(): void
     {
         $this->addArgument(
             self::ARGUMENT_ORDER,
-            InputArgument::REQUIRED,
+            InputArgument::OPTIONAL,
             self::ARGUMENT_ORDER_DESCRIPTION
         );
 
@@ -58,18 +63,8 @@ class PushOrder extends Command
         return $this->orderRepository->get($orderId);
     }
 
-    /**
-     * {@inheritdoc}
-     */
-    protected function execute(
-        InputInterface $input,
-        OutputInterface $output
-    ): void {
-        /** @var Order $order */
-        $order = $this->fetchOrder(
-            (int)$input->getArgument('order_id')
-        );
-
+    private function pushOrderToQueue(Order $order,  OutputInterface $output)
+    {
         $dto = $this->orderDataObjectHelper->create($order);
 
         $this->orderPublisher->execute($dto, self::COMMAND_EVENT_NAME);
@@ -77,5 +72,28 @@ class PushOrder extends Command
         $output->writeln(
             sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())
         );
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function execute(
+        InputInterface $input,
+        OutputInterface $output
+    ): void {
+        if($input->getArgument('order_id')) {
+            /** @var Order $order */
+            $order = $this->fetchOrder(
+                (int)$input->getArgument('order_id')
+            );
+
+            $this->pushOrderToQueue($order, $output);
+
+            return;
+        }
+
+        foreach($this->collectionFactory->create() as $order) {
+            $this->pushOrderToQueue($order, $output);
+        }
     }
 }
