@@ -15,11 +15,11 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class PushOrder extends Command
+class PushOrders extends Command
 {
-    private const DEFAULT_COMMAND_NAME = 'signalise:push-order';
-    private const DEFAULT_COMMAND_DESCRIPTION = 'Push order to the queue';
-    private const COMMAND_EVENT_NAME = 'push_order_command';
+    private const DEFAULT_COMMAND_NAME = 'signalise:push-orders';
+    private const DEFAULT_COMMAND_DESCRIPTION = 'Push orders to the queue or give the command an argument to push an specific order to the queue.';
+    private const COMMAND_EVENT_NAME = 'push_orders_command';
     private const ARGUMENT_ORDER = 'order_id';
     private const ARGUMENT_ORDER_DESCRIPTION = 'Select the order you want to send to Signalise';
 

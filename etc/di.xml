@@ -3,7 +3,7 @@
 	<type name="Magento\Framework\Console\CommandList">
 		<arguments>
 			<argument name="commands" xsi:type="array">
-				<item name="push-order" xsi:type="object">Signalise\Plugin\Console\Command\PushOrder</item>
+				<item name="push-order" xsi:type="object">Signalise\Plugin\Console\Command\PushOrders</item>
 			</argument>
 		</arguments>
 	</type>
