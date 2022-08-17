@@ -24,9 +24,9 @@ class SignaliseApiClient
     /**
      * @throws LocalizedException
      */
-    private function apiKey(): string
+    private function apiUrl(): string
     {
-        return $this->signaliseConfig->getApiKey();
+        return $this->signaliseConfig->getApiUrl();
     }
 
     /**
@@ -35,7 +35,7 @@ class SignaliseApiClient
     private function createRequest(string $serializedData): Request
     {
         return new Request(
-            $this->apiKey(),
+            $this->apiUrl(),
             Request::METHOD_POST, [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json'

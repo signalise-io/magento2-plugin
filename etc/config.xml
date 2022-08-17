@@ -3,7 +3,7 @@
     <default>
         <signalise_plugin>
             <general>
-                <api_key/>
+                <api_url/>
             </general>
         </signalise_plugin>
     </default>

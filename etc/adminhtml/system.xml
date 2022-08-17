@@ -10,9 +10,9 @@
             <tab>signalise</tab>
             <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Signalise Api Settings</label>
-                <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
-                    <label>Api key</label>
-                    <comment>Enter your api key to connect with Signalise</comment>
+                <field id="api_url" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Api url</label>
+                    <comment>Enter your api url to connect with Signalise</comment>
                 </field>
                 <field id="active_events" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Active Events</label>

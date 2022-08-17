@@ -11,7 +11,7 @@ use Magento\Store\Model\Store;
 
 class SignaliseConfig
 {
-    private const XML_PATH_API_KEY = 'signalise_api_settings/general/api_key';
+    private const XML_PATH_API_URL = 'signalise_api_settings/general/api_url';
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/general/active_events';
 
     private ScopeConfigInterface $scopeConfig;
@@ -24,17 +24,17 @@ class SignaliseConfig
     /**
      * @throws LocalizedException
      */
-    public function getApiKey(): string
+    public function getApiUrl(): string
     {
         $apiKey = $this->scopeConfig->getValue(
-            self::XML_PATH_API_KEY,
+            self::XML_PATH_API_URL,
             ScopeInterface::SCOPE_STORE,
             Store::DEFAULT_STORE_ID
         );
 
         if(empty($apiKey)) {
             throw new LocalizedException(
-                __('Api key has not been configured.')
+                __('Api url has not been configured.')
             );
         }
 
