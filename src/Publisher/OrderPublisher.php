@@ -10,19 +10,26 @@ use Magento\Framework\Serialize\Serializer\Json;
 
 class OrderPublisher
 {
-    const TOPIC_NAME = "signalise.order.push";
+    private const TOPIC_NAME = "signalise.order.push";
 
     private Json $json;
+
     private PublisherInterface $publisher;
 
     public function __construct(
         Json $json,
         PublisherInterface $publisher
     ) {
-        $this->json = $json;
+        $this->json      = $json;
         $this->publisher = $publisher;
     }
 
+    /**
+     * @param DataObject $orderDataObject
+     * @param string     $eventName
+     *
+     * @return mixed|null
+     */
     public function execute(DataObject $orderDataObject, string $eventName)
     {
         return $this->publisher->publish(

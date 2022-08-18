@@ -24,37 +24,31 @@ class OrderPaymentPayObserver implements ObserverInterface
         OrderDataObjectHelper $orderDataObjectHelper,
         SignaliseConfig $signaliseConfig
     ) {
-        $this->orderPublisher = $orderPublisher;
+        $this->orderPublisher        = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
-        $this->signaliseConfig = $signaliseConfig;
+        $this->signaliseConfig       = $signaliseConfig;
     }
 
     private function authorize(string $eventName): bool
     {
         return in_array(
             $eventName,
-            $this->signaliseConfig->getActiveEvents()
+            $this->signaliseConfig->getActiveEvents(),
+            true
         );
     }
 
-    /**
-     * Execute observer
-     *
-     * @param Observer $observer
-     * @return void
-     */
     public function execute(
         Observer $observer
     ): void {
         $eventName = $observer->getEvent()->getName();
-        if(!$this->authorize($eventName)) {
+        if (!$this->authorize($eventName)) {
             return;
         }
 
         /** @var Order $order */
         $order = $observer->getEvent()->getOrder() ?? $observer->getEvent()->getInvoice()->getOrder();
-
-        $dto = $this->orderDataObjectHelper->create($order);
+        $dto   = $this->orderDataObjectHelper->create($order);
 
         $this->orderPublisher->execute($dto, $eventName);
     }

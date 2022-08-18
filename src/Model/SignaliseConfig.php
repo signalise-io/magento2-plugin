@@ -11,7 +11,7 @@ use Magento\Store\Model\Store;
 
 class SignaliseConfig
 {
-    private const XML_PATH_API_URL = 'signalise_api_settings/general/api_url';
+    private const XML_PATH_API_URL       = 'signalise_api_settings/general/api_url';
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/general/active_events';
 
     private ScopeConfigInterface $scopeConfig;
@@ -32,7 +32,7 @@ class SignaliseConfig
             Store::DEFAULT_STORE_ID
         );
 
-        if(empty($apiKey)) {
+        if (empty($apiKey)) {
             throw new LocalizedException(
                 __('Api url has not been configured.')
             );

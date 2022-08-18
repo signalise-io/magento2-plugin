@@ -17,11 +17,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class PushOrders extends Command
 {
-    private const DEFAULT_COMMAND_NAME = 'signalise:push-orders';
-    private const DEFAULT_COMMAND_DESCRIPTION = 'Push orders to the queue or give the command an argument to push an specific order to the queue.';
-    private const COMMAND_EVENT_NAME = 'push_orders_command';
-    private const ARGUMENT_ORDER = 'order_id';
-    private const ARGUMENT_ORDER_DESCRIPTION = 'Select the order you want to send to Signalise';
+    private const DEFAULT_COMMAND_NAME        = 'signalise:push-orders';
+    private const DEFAULT_COMMAND_DESCRIPTION = 'Push all orders or specific order to Signalise Queue.';
+    private const COMMAND_EVENT_NAME          = 'push_orders_command';
+    private const ARGUMENT_ORDER              = 'order_id';
+    private const ARGUMENT_ORDER_DESCRIPTION  = 'Select the order you want to send to Signalise';
 
     private OrderRepositoryInterface $orderRepository;
 
@@ -41,10 +41,10 @@ class PushOrders extends Command
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-        $this->orderRepository = $orderRepository;
-        $this->orderPublisher = $orderPublisher;
+        $this->orderRepository       = $orderRepository;
+        $this->orderPublisher        = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
-        $this->collectionFactory = $collectionFactory;
+        $this->collectionFactory     = $collectionFactory;
     }
 
     protected function configure(): void
@@ -63,7 +63,7 @@ class PushOrders extends Command
         return $this->orderRepository->get($orderId);
     }
 
-    private function pushOrderToQueue(Order $order,  OutputInterface $output)
+    private function pushOrderToQueue(Order $order, OutputInterface $output)
     {
         $dto = $this->orderDataObjectHelper->create($order);
 
@@ -81,7 +81,7 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): void {
-        if($input->getArgument('order_id')) {
+        if ($input->getArgument('order_id')) {
             /** @var Order $order */
             $order = $this->fetchOrder(
                 (int)$input->getArgument('order_id')
@@ -92,7 +92,7 @@ class PushOrders extends Command
             return;
         }
 
-        foreach($this->collectionFactory->create() as $order) {
+        foreach ($this->collectionFactory->create() as $order) {
             $this->pushOrderToQueue($order, $output);
         }
     }

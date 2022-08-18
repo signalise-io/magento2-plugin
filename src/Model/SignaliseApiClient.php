@@ -23,9 +23,9 @@ class SignaliseApiClient
         SignaliseConfig $signaliseConfig,
         LoggerInterface $logger
     ) {
-        $this->client = $client;
+        $this->client          = $client;
         $this->signaliseConfig = $signaliseConfig;
-        $this->logger = $logger;
+        $this->logger          = $logger;
     }
 
     /**
@@ -43,7 +43,8 @@ class SignaliseApiClient
     {
         return new Request(
             $this->apiUrl(),
-            Request::METHOD_POST, [
+            Request::METHOD_POST,
+            [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ],
