@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
+use Magento\Framework\Console\Cli;
 use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -80,7 +81,7 @@ class PushOrders extends Command
     protected function execute(
         InputInterface $input,
         OutputInterface $output
-    ): void {
+    ): int {
         if ($input->getArgument('order_id')) {
             /** @var Order $order */
             $order = $this->fetchOrder(
@@ -89,11 +90,13 @@ class PushOrders extends Command
 
             $this->pushOrderToQueue($order, $output);
 
-            return;
+            return Cli::RETURN_SUCCESS;
         }
 
         foreach ($this->collectionFactory->create() as $order) {
             $this->pushOrderToQueue($order, $output);
         }
+
+        return Cli::RETURN_SUCCESS;
     }
 }

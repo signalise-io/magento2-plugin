@@ -47,7 +47,7 @@ class OrderPlaceAfterObserver implements ObserverInterface
         }
 
         /** @var Order $order */
-        $order = $observer->getEvent()->getOrder();
+        $order = $observer->getEvent()->getData('order');
         $dto   = $this->orderDataObjectHelper->create($order);
 
         $this->orderPublisher->execute($dto, $eventName);

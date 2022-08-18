@@ -2,7 +2,7 @@
     "name": "signalise/magento2-plugin",
     "description": "Signalise plugin",
     "type": "magento2-module",
-    "license": "GPL-3.0",
+    "license": "GPL-3.0-or-later",
     "authors": [
         {
             "name": "elgentos",
