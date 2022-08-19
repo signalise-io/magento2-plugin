@@ -15,9 +15,6 @@ class OrderConsumer
         $this->signaliseApiClient = $signaliseApiClient;
     }
 
-    /**
-     * @throws Exception
-     */
     public function processMessage(string $serializedDto): void
     {
         $this->signaliseApiClient->pushData($serializedDto);

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Console\Command;
 
 use Magento\Framework\Console\Cli;
-use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
@@ -59,9 +58,12 @@ class PushOrders extends Command
         parent::configure();
     }
 
-    private function fetchOrder(int $orderId): OrderInterface
+    private function fetchOrder(int $orderId): Order
     {
-        return $this->orderRepository->get($orderId);
+        /** @var Order $order */
+        $order = $this->orderRepository->get($orderId);
+
+        return $order;
     }
 
     private function pushOrderToQueue(Order $order, OutputInterface $output)
@@ -82,10 +84,10 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
-        if ($input->getArgument('order_id')) {
-            /** @var Order $order */
+        $orderId = $input->getArgument('order_id');
+        if ($orderId) {
             $order = $this->fetchOrder(
-                (int)$input->getArgument('order_id')
+                (int)$orderId
             );
 
             $this->pushOrderToQueue($order, $output);

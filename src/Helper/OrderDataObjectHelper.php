@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Helper;
 
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Model\Order;
 
 class OrderDataObjectHelper
