@@ -20,18 +20,35 @@ class EventsTest extends TestCase
     /**
      * @covers ::__construct
      * @covers ::toOptionArray
+     * @dataProvider setDataProvider
      */
-    public function testToOptionArray(): void
+    public function testToOptionArray(array $events): void
     {
         $subject = new Events(
-            [
-                ['0' => 'TestEvent'],
-                ['1' => 'TestEvent2']
-            ]
+            $events
         );
 
         $options = $subject->toOptionArray();
 
         $this->assertIsArray($options);
+        $this->assertEquals(count($events), count($options));
+    }
+
+    public function setDataProvider(): array
+    {
+        return [
+            'single_event' => [
+                [
+                    'value_1' => 'label_1'
+                ]
+            ],
+            'multiple_events' => [
+                [
+                    'value_1' => 'label_1',
+                    'value_2' => 'label_2',
+                    'value_3' => 'label_2'
+                ]
+            ]
+        ];
     }
 }
