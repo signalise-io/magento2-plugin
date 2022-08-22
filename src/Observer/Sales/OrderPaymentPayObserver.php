@@ -49,7 +49,7 @@ class OrderPaymentPayObserver implements ObserverInterface
         /** @var Order\Invoice $invoice */
         $invoice = $observer->getEvent()->getData('invoice');
 
-        $dto     = $this->orderDataObjectHelper->create($invoice->getOrder());
+        $dto = $this->orderDataObjectHelper->create($invoice->getOrder());
 
         $this->orderPublisher->execute($dto, $eventName);
     }
