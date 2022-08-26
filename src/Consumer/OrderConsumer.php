@@ -2,8 +2,8 @@
 
 namespace Signalise\Plugin\Consumer;
 
-use Exception;
-use Signalise\Plugin\Model\SignaliseApiClient;
+use Magento\Framework\Exception\LocalizedException;
+use Signalise\Plugin\Model\Client\SignaliseApiClient;
 
 class OrderConsumer
 {
@@ -15,6 +15,9 @@ class OrderConsumer
         $this->signaliseApiClient = $signaliseApiClient;
     }
 
+    /**
+     * @throws LocalizedException
+     */
     public function processMessage(string $serializedDto): void
     {
         $this->signaliseApiClient->pushData($serializedDto);

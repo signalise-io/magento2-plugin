@@ -9,9 +9,10 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Test\Consumer;
 
+use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\TestCase;
 use Signalise\Plugin\Consumer\OrderConsumer;
-use Signalise\Plugin\Model\SignaliseApiClient;
+use Signalise\Plugin\Model\Client\SignaliseApiClient;
 
 /**
  * @coversDefaultClass \Signalise\Plugin\Consumer\OrderConsumer
@@ -21,6 +22,7 @@ class OrderConsumerTest extends TestCase
     /**
      * @covers ::__construct
      * @covers ::processMessage
+     * @throws LocalizedException
      */
     public function testProcessMessage(): void
     {

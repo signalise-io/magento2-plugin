@@ -9,15 +9,15 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Test\Model;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
 use PHPUnit\Framework\TestCase;
-use Signalise\Plugin\Model\SignaliseConfig;
-use Magento\Framework\App\Config\ScopeConfigInterface;
+use Signalise\Plugin\Model\Config\SignaliseConfig;
 
 /**
- * @coversDefaultClass \Signalise\Plugin\Model\SignaliseConfig
+ * @coversDefaultClass \Signalise\Plugin\Model\Config\SignaliseConfig
  */
 class SignaliseConfigTest extends TestCase
 {

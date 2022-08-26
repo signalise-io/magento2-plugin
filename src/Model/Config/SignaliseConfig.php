@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Signalise\Plugin\Model;
+namespace Signalise\Plugin\Model\Config;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;

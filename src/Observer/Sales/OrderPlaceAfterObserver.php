@@ -8,7 +8,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
-use Signalise\Plugin\Model\SignaliseConfig;
+use Signalise\Plugin\Model\Config\SignaliseConfig;
 use Signalise\Plugin\Publisher\OrderPublisher;
 
 class OrderPlaceAfterObserver implements ObserverInterface

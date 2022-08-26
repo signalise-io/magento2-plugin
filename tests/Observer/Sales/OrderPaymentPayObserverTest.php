@@ -14,7 +14,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\TestCase;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
-use Signalise\Plugin\Model\SignaliseConfig;
+use Signalise\Plugin\Model\Config\SignaliseConfig;
 use Signalise\Plugin\Observer\Sales\OrderPaymentPayObserver;
 use Signalise\Plugin\Publisher\OrderPublisher;
 
