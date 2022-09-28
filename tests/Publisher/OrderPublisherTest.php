@@ -36,8 +36,7 @@ class OrderPublisherTest extends TestCase
         );
 
         $subject->execute(
-            $dataObject,
-            'testExecute'
+            $dataObject
         );
     }
 

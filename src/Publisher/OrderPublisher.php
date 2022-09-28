@@ -25,16 +25,13 @@ class OrderPublisher
     }
 
     /**
-     * @param DataObject $orderDataObject
-     * @param string     $eventName
-     *
      * @return mixed|null
      */
-    public function execute(DataObject $orderDataObject, string $eventName)
+    public function execute(DataObject $orderDataObject)
     {
         return $this->publisher->publish(
             self::TOPIC_NAME,
-            $this->json->serialize([$orderDataObject->getData(), $eventName])
+            $this->json->serialize(['records' => [$orderDataObject->getData()]])
         );
     }
 }

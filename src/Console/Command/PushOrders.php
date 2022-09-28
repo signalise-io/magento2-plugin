@@ -19,7 +19,6 @@ class PushOrders extends Command
 {
     private const DEFAULT_COMMAND_NAME        = 'signalise:push-orders';
     private const DEFAULT_COMMAND_DESCRIPTION = 'Push all orders or specific order to Signalise Queue.';
-    private const COMMAND_EVENT_NAME          = 'push_orders_command';
     private const ARGUMENT_ORDER              = 'order_id';
     private const ARGUMENT_ORDER_DESCRIPTION  = 'Select the order you want to send to Signalise';
 
@@ -70,7 +69,7 @@ class PushOrders extends Command
     {
         $dto = $this->orderDataObjectHelper->create($order);
 
-        $this->orderPublisher->execute($dto, self::COMMAND_EVENT_NAME);
+        $this->orderPublisher->execute($dto);
 
         $output->writeln(
             sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())

@@ -23,5 +23,7 @@ class OrderConsumerTest extends TestCase
     public function testProcessMessage(): void
     {
         // @ todo | Add orderConsumerTest
+
+        self::assertTrue(true);
     }
 }

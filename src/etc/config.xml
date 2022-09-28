@@ -4,6 +4,7 @@
         <signalise_plugin>
             <general>
                 <api_url/>
+                <connect_id/>
             </general>
         </signalise_plugin>
     </default>

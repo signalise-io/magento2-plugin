@@ -9,10 +9,12 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Test\Helper;
 
-use Magento\Framework\DataObject;
+use DateTime;
+use Exception;
+use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
 use Magento\Sales\Model\Order;
-use Magento\Store\Model\Store;
+use Magento\Sales\Model\Order\Address;
 use PHPUnit\Framework\TestCase;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 
@@ -25,10 +27,13 @@ class OrderDataObjectHelperTest extends TestCase
      * @return void
      *
      * @covers ::create
+     * @throws Exception
      */
     public function testCreate(): void
     {
-        $subject = new OrderDataObjectHelper();
+        $subject = new OrderDataObjectHelper(
+            $this->createTimezoneInterfaceMock()
+        );
 
         $subject->create(
             $this->createOrderMock()
@@ -41,18 +46,43 @@ class OrderDataObjectHelperTest extends TestCase
 
         $order
             ->expects(self::once())
-            ->method('getStore')
-            ->willReturn(
-                $this->createMock(Store::class)
-            );
-
-        $order
-            ->expects(self::once())
             ->method('getPayment')
             ->willReturn(
                 $this->createMock(OrderPaymentInterface::class)
             );
 
+        $order->expects(self::any())
+            ->method('getShippingAddress')
+            ->willReturn(
+                $this->createMock(Address::class)
+            );
+
         return $order;
+    }
+
+    public function createTimezoneInterfaceMock(): TimezoneInterface
+    {
+        $timeZoneInterface =  $this->createMock(TimezoneInterface::class);
+
+        $timeZoneInterface->expects(self::once())
+            ->method('date')
+            ->willReturn(
+                $this->createDateTimeMock()
+            );
+
+        return $timeZoneInterface;
+    }
+
+    public function createDateTimeMock(): DateTime
+    {
+        $dateTime = $this->createMock(DateTime::class);
+
+        $dateTime->expects(self::once())
+            ->method('format')
+            ->willReturn(
+                '2022-09-28 04:58:56'
+            );
+
+        return $dateTime;
     }
 }
