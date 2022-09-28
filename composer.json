@@ -21,6 +21,10 @@
         "magento": {
             "type": "composer",
             "url": "https://repo.magento.com"
+        },
+        "phpclient": {
+            "type": "path",
+            "url": "../signalise-php-client"
         }
     },
     "autoload": {
@@ -39,7 +43,8 @@
     "require-dev": {
         "elgentos/testing-suite": "dev-main",
         "elgentos/coding-standard-phpstorm": "dev-master",
-        "youwe/coding-standard-magento2": "^1.7.0"
+        "youwe/coding-standard-magento2": "^1.7.0",
+        "signalise/php-client": "dev-1-api-client"
     },
     "config": {
         "sort-packages": true,

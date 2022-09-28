@@ -26,6 +26,7 @@ class SignaliseConfigTest extends TestCase
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/general/active_events';
     private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/general/connect_id';
     private const XML_PATH_API_KEY       = 'signalise_api_settings/general/api_key';
+    private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/general/development';
 
     /**
      * @covers ::getActiveEvents
@@ -92,9 +93,30 @@ class SignaliseConfigTest extends TestCase
         $subject->getConnectId();
     }
 
+    public function testIsDevelopmentMode()
+    {
+        $subject = new SignaliseConfig(
+            $this->createScopeConfigInterfaceMock(
+                self::XML_PATH_DEVELOPMENT,
+                false,
+                Store::DEFAULT_STORE_ID
+            ),
+            $this->createMock(StoreManagerInterface::class)
+        );
+
+        $subject->isDevelopmentMode();
+    }
+
+    /**
+     * @param string      $configPath
+     * @param string|bool $returnValue
+     * @param int         $storeId
+     *
+     * @return ScopeConfigInterface
+     */
     private function createScopeConfigInterfaceMock(
         string $configPath,
-        string $returnValue,
+        $returnValue,
         int $storeId
     ): ScopeConfigInterface {
         $scopeConfigInterface = $this->createMock(ScopeConfigInterface::class);
@@ -107,7 +129,7 @@ class SignaliseConfigTest extends TestCase
                 ScopeInterface::SCOPE_STORE,
                 $storeId
             )->willReturn(
-                empty($returnValue) ? '' : $returnValue
+                $returnValue
             );
 
         return $scopeConfigInterface;

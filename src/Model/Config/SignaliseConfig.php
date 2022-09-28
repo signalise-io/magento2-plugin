@@ -15,6 +15,7 @@ class SignaliseConfig
     private const XML_PATH_API_KEY       = 'signalise_api_settings/general/api_key';
     private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/general/connect_id';
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/general/active_events';
+    private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/general/development';
 
     private ScopeConfigInterface $scopeConfig;
 
@@ -77,5 +78,14 @@ class SignaliseConfig
         }
 
         return $connectId;
+    }
+
+    public function isDevelopmentMode(): bool
+    {
+        return $this->scopeConfig->getValue(
+            self::XML_PATH_DEVELOPMENT,
+            ScopeInterface::SCOPE_STORE,
+            Store::DEFAULT_STORE_ID
+        );
     }
 }
