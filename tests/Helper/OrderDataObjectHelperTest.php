@@ -26,7 +26,9 @@ class OrderDataObjectHelperTest extends TestCase
     /**
      * @return void
      *
+     * @covers ::__construct
      * @covers ::create
+     * @covers ::createFormattedDate
      * @throws Exception
      */
     public function testCreate(): void
@@ -40,7 +42,7 @@ class OrderDataObjectHelperTest extends TestCase
         );
     }
 
-    public function createOrderMock(): Order
+    private function createOrderMock(): Order
     {
         $order = $this->createMock(Order::class);
 
@@ -60,7 +62,7 @@ class OrderDataObjectHelperTest extends TestCase
         return $order;
     }
 
-    public function createTimezoneInterfaceMock(): TimezoneInterface
+    private function createTimezoneInterfaceMock(): TimezoneInterface
     {
         $timeZoneInterface =  $this->createMock(TimezoneInterface::class);
 
@@ -73,7 +75,7 @@ class OrderDataObjectHelperTest extends TestCase
         return $timeZoneInterface;
     }
 
-    public function createDateTimeMock(): DateTime
+    private function createDateTimeMock(): DateTime
     {
         $dateTime = $this->createMock(DateTime::class);
 

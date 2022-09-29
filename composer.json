@@ -17,6 +17,12 @@
         "magento/module-sales": "^103.0",
         "magento/module-store": "^101.1"
     },
+    "require-dev": {
+        "elgentos/testing-suite": "dev-main",
+        "elgentos/coding-standard-phpstorm": "dev-master",
+        "youwe/coding-standard-magento2": "^1.7.0",
+        "signalise/php-client": "dev-1-api-client"
+    },
     "repositories": {
         "magento": {
             "type": "composer",
@@ -39,12 +45,6 @@
         "psr-4": {
             "Signalise\\Plugin\\Test\\": "tests/"
         }
-    },
-    "require-dev": {
-        "elgentos/testing-suite": "dev-main",
-        "elgentos/coding-standard-phpstorm": "dev-master",
-        "youwe/coding-standard-magento2": "^1.7.0",
-        "signalise/php-client": "dev-1-api-client"
     },
     "config": {
         "sort-packages": true,

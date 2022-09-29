@@ -93,6 +93,9 @@ class SignaliseConfigTest extends TestCase
         $subject->getConnectId();
     }
 
+    /**
+     * @covers ::isDevelopmentMode
+     */
     public function testIsDevelopmentMode()
     {
         $subject = new SignaliseConfig(
