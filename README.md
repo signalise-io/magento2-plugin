@@ -5,6 +5,8 @@ and a consumer will be pushing the data to Signalise.
 
 This plugin can also push orders or a specific order to signalise through the ``signalise:push-order {order_id}`` command.
 
+### Configuration
+![img.png](img.png)
 ### Events
 We currently have 2 configurable events that will send data to signalise when it gets triggered. 
 
