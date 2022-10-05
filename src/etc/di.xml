@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<type name="Magento\Framework\Console\CommandList">
+		<arguments>
+			<argument name="commands" xsi:type="array">
+				<item name="push-order" xsi:type="object">Signalise\Plugin\Console\Command\PushOrders</item>
+			</argument>
+		</arguments>
+	</type>
+    <type name="Signalise\Plugin\Model\Config\Source\Events">
+        <arguments>
+            <argument name="events" xsi:type="array">
+                <item name="sales_order_place_after" xsi:type="string">Sales order place after</item>
+                <item name="sales_order_payment_pay" xsi:type="string">Sales order payment pay</item>
+                <!-- More items -->
+            </argument>
+        </arguments>
+    </type>
+</config>
