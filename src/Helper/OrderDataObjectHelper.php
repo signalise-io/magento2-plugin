@@ -14,8 +14,9 @@ class OrderDataObjectHelper
 {
     private TimezoneInterface $timezone;
 
-    public function __construct(TimezoneInterface $timezone)
-    {
+    public function __construct(
+        TimezoneInterface $timezone
+    ) {
         $this->timezone = $timezone;
     }
 
@@ -38,16 +39,16 @@ class OrderDataObjectHelper
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_costs' => $order->getShippingAmount(),
                 'zip' => $order->getShippingAddress()->getPostcode(),
-                'street' => $order->getShippingAddress()->getStreet(),
+                'street' => $order->getShippingAddress() ? $order->getShippingAddress()->getStreet()[0] : '',
                 'house_number' => '',
                 'city' => $order->getShippingAddress()->getCity(),
+                'country' => $order->getShippingAddress()->getCountryId(),
                 'status' => $order->getStatus(),
                 'date' => $this->createFormattedDate($order->getCreatedAt()),
                 'tag' => ''
             ]
         );
     }
-
     /**
      * @throws Exception
      */

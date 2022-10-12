@@ -6,6 +6,7 @@ use GuzzleHttp\Exception\GuzzleException;
 use Magento\Framework\Exception\LocalizedException;
 use Signalise\PhpClient\Client\ApiClient;
 use Signalise\PhpClient\Exception\ResponseException;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 
 class OrderConsumer
@@ -14,25 +15,37 @@ class OrderConsumer
 
     private ApiClient $apiClient;
 
-    public function __construct(SignaliseConfig $config, ApiClient $apiClient)
-    {
+    private Logger $logger;
+
+    public function __construct(
+        SignaliseConfig $config,
+        ApiClient $apiClient,
+        Logger $logger
+    ) {
         $this->config    = $config;
         $this->apiClient = $apiClient;
+        $this->logger    = $logger;
     }
 
     /**
-     * @throws LocalizedException|GuzzleException|ResponseException
+     * @throws LocalizedException
      */
-    public function processMessage(string $serializedData): void
+    public function processMessage(string $serializedData)
     {
         if ($this->config->isDevelopmentMode()) {
-            return;
+             return;
         }
 
-        $this->apiClient->postOrderHistory(
-            $this->config->getApiKey(),
-            $serializedData,
-            $this->config->getConnectId()
-        );
+        try {
+            $this->apiClient->postOrderHistory(
+                $this->config->getApiKey(),
+                $serializedData,
+                $this->config->getConnectId()
+            );
+        } catch (GuzzleException | ResponseException $e) {
+            $this->logger->critical(
+                $e->getMessage()
+            );
+        }
     }
 }

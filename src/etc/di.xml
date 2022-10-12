@@ -16,4 +16,17 @@
             </argument>
         </arguments>
     </type>
+    <type name="Signalise\Plugin\Logger\Handler">
+        <arguments>
+            <argument name="filesystem" xsi:type="object">Magento\Framework\Filesystem\Driver\File</argument>
+        </arguments>
+    </type>
+    <type name="Signalise\Plugin\Logger\Logger">
+        <arguments>
+            <argument name="name" xsi:type="string">SignaliseLogger</argument>
+            <argument name="handlers"  xsi:type="array">
+                <item name="system" xsi:type="object">Signalise\Plugin\Logger\Handler</item>
+            </argument>
+        </arguments>
+    </type>
 </config>

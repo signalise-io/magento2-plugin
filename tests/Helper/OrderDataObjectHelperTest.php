@@ -56,15 +56,34 @@ class OrderDataObjectHelperTest extends TestCase
         $order->expects(self::any())
             ->method('getShippingAddress')
             ->willReturn(
-                $this->createMock(Address::class)
+                $this->createAddressMock()
             );
 
         return $order;
     }
 
+    private function createAddressMock(): Address
+    {
+        $address = $this->createMock(Address::class);
+
+        $address->expects(self::once())
+            ->method('getPostcode')
+            ->willReturn('9932HN');
+
+        $address->expects(self::once())
+            ->method('getStreet')
+            ->willReturn(['Delf 11']);
+
+        $address->expects(self::once())
+            ->method('getCountryId')
+            ->willReturn('NL');
+
+        return $address;
+    }
+
     private function createTimezoneInterfaceMock(): TimezoneInterface
     {
-        $timeZoneInterface =  $this->createMock(TimezoneInterface::class);
+        $timeZoneInterface = $this->createMock(TimezoneInterface::class);
 
         $timeZoneInterface->expects(self::once())
             ->method('date')
