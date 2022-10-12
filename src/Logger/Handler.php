@@ -24,5 +24,5 @@ class Handler extends Base
      * File name
      * @var string
      */
-    protected $fileName = '/var/log/signalise.log';
+    protected $fileName = 'var/log/signalise.log';
 }
