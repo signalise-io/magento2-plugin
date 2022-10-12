@@ -39,7 +39,7 @@ class OrderDataObjectHelper
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_costs' => $order->getShippingAmount(),
                 'zip' => $order->getShippingAddress()->getPostcode(),
-                'street' => $order->getShippingAddress() ?? $order->getShippingAddress()->getStreet()[0],
+                'street' => $order->getShippingAddress() ? $order->getShippingAddress()->getStreet()[0] : '',
                 'house_number' => '',
                 'city' => $order->getShippingAddress()->getCity(),
                 'country' => $order->getShippingAddress()->getCountryId(),
