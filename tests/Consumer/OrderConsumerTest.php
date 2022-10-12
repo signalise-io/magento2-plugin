@@ -9,12 +9,11 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Test\Consumer;
 
-use GuzzleHttp\Exception\GuzzleException;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\TestCase;
 use Signalise\PhpClient\Client\ApiClient;
-use Signalise\PhpClient\Exception\ResponseException;
 use Signalise\Plugin\Consumer\OrderConsumer;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 
 /**
@@ -29,7 +28,7 @@ class OrderConsumerTest extends TestCase
     /**
      * @covers ::__construct
      * @covers ::processMessage
-     * @throws LocalizedException|GuzzleException|ResponseException
+     * @throws LocalizedException
      * @dataProvider setDataProvider
      */
     public function testProcessMessage(
@@ -51,14 +50,9 @@ class OrderConsumerTest extends TestCase
                 $connectId,
                 $serializedData,
                 $responseMessage
-            )
+            ),
+            $this->createMock(Logger::class)
         );
-
-        if ($statusCode === self::STATUS_UNPROCESSABLE_CONTENT) {
-            $this->expectException(
-                ResponseException::class
-            );
-        }
 
         $subject->processMessage($serializedData);
     }
@@ -93,18 +87,6 @@ class OrderConsumerTest extends TestCase
         array $responseMessage
     ): ApiClient {
         $apiClient = $this->createMock(ApiClient::class);
-
-        if ($statusCode === self::STATUS_UNPROCESSABLE_CONTENT) {
-            $apiClient->expects(self::once())
-                ->method('postOrderHistory')
-                ->with(
-                    $apiKey,
-                    $serializedData,
-                    $connectId
-                )->willThrowException(
-                    $this->createMock(ResponseException::class)
-                );
-        }
 
         if ($statusCode === self::STATUS_CREATED) {
             $apiClient->expects(self::once())

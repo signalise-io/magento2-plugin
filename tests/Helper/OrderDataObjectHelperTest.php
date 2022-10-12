@@ -64,7 +64,7 @@ class OrderDataObjectHelperTest extends TestCase
 
     private function createTimezoneInterfaceMock(): TimezoneInterface
     {
-        $timeZoneInterface =  $this->createMock(TimezoneInterface::class);
+        $timeZoneInterface = $this->createMock(TimezoneInterface::class);
 
         $timeZoneInterface->expects(self::once())
             ->method('date')

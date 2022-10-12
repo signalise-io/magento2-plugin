@@ -82,7 +82,7 @@ class SignaliseConfig
 
     public function isDevelopmentMode(): bool
     {
-        return $this->scopeConfig->getValue(
+        return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_DEVELOPMENT,
             ScopeInterface::SCOPE_STORE,
             Store::DEFAULT_STORE_ID
