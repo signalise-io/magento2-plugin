@@ -41,22 +41,29 @@ class Connect extends Action
     }
 
     /**
-     * @throws LocalizedException|GuzzleException|ResponseException
+     * @throws ResponseException
      */
     public function execute(): Json
     {
-        $validConnectIds = $this->apiClient->getConnects(
-            $this->config->getApiKey()
-        );
+        try {
+            $validConnectIds = $this->apiClient->getConnects(
+                $this->config->getApiKey()
+            );
 
-        if(in_array($this->config->getConnectId(), $validConnectIds)) {
+            if(in_array($this->config->getConnectId(), $validConnectIds)) {
+                $data = [
+                    'message' => __('Connect is valid'),
+                    'class' => 'valid'
+                ];
+            } else {
+                $data = [
+                    'message' => __('Connect is invalid'),
+                    'class' => 'invalid'
+                ];
+            }
+        } catch (LocalizedException|GuzzleException $exception) {
             $data = [
-                'message' => __('Connect is valid'),
-                'class' => 'valid'
-            ];
-        } else {
-            $data = [
-                'message' => __('Connect is invalid'),
+                'message' => $exception->getMessage(),
                 'class' => 'invalid'
             ];
         }
