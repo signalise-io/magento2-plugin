@@ -37,6 +37,11 @@ class ConnectButton extends Field
         return $this->_toHtml();
     }
 
+    public function getAjaxUrl(): string
+    {
+        return $this->getUrl('signalise_api_settings/ajax/connect');
+    }
+
     /**
      * @throws LocalizedException
      */
@@ -47,7 +52,7 @@ class ConnectButton extends Field
         )->setData(
             [
                 'id' => 'connect_button',
-                'label' => __('Custom Button'),
+                'label' => __('Validate Connect'),
             ]
         );
 
