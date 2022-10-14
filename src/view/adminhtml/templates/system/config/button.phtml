@@ -1,0 +1,44 @@
+<?php
+/**
+ * @var \Signalise\Plugin\Block\System\Config\ConnectButton $block ;
+ */
+?>
+<style>
+    .valid {
+        font-weight: bold;
+        color: green;
+    }
+
+    .invalid {
+        font-weight: bold;
+        color: red;
+    }
+</style>
+
+<script>
+    require([
+        'jquery',
+        'prototype',
+    ], function (jQuery) {
+        jQuery('#connect_button').click(function () {
+
+            const params = {
+                form_key: '<?php echo $block->getFormKey() ?>',
+                isAjax: true
+            };
+
+            jQuery.ajax({
+                showLoader: true,
+                url: "<?php echo $block->getAjaxUrl() ?>",
+                data: params,
+                dataType: 'json'
+            }).done(function (data) {
+                console.log(data)
+                jQuery('#connect_button_message_response').text(data.message).addClass(data.class);
+            });
+        });
+    });
+</script>
+
+<?php echo $block->getButtonHtml() ?>
+<span id="connect_button_message_response"></span>

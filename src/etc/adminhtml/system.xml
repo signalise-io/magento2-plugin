@@ -18,6 +18,10 @@
                     <label>Store Connect id</label>
                     <comment>Enter your store connect id</comment>
                 </field>
+                <field id="connect_button" translate="label" type="button" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Check Connect</label>
+                    <frontend_model>Signalise\Plugin\Block\System\Config\ConnectButton</frontend_model>
+                </field>
                 <field id="active_events" translate="label" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Active Events</label>
                     <source_model>Signalise\Plugin\Model\Config\Source\Events</source_model>
