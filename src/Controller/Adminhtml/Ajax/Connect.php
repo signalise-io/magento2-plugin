@@ -15,6 +15,7 @@ use Magento\Backend\App\Action\Context;
 use Magento\Framework\Controller\Result\Json;
 use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Phrase;
 use Signalise\PhpClient\Client\ApiClient;
 use Signalise\PhpClient\Exception\ResponseException;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
@@ -27,17 +28,37 @@ class Connect extends Action
 
     private SignaliseConfig $config;
 
+    private const VALID_CLASS   = 'valid';
+    private const INVALID_CLASS = 'invalid';
+
+
     public function __construct(
-        Context $context,
-        JsonFactory $resultJsonFactory,
-        ApiClient $apiClient,
+        Context         $context,
+        JsonFactory     $resultJsonFactory,
+        ApiClient       $apiClient,
         SignaliseConfig $config
-    ) {
+    )
+    {
         parent::__construct($context);
 
         $this->resultJsonFactory = $resultJsonFactory;
         $this->apiClient         = $apiClient;
         $this->config            = $config;
+    }
+
+    /**
+     * @param string|Phrase $message
+     */
+    private function returnResult($message, string $class): Json
+    {
+        $data = [
+            'message' => $message,
+            'class' => $class
+        ];
+
+        $result = $this->resultJsonFactory->create();
+
+        return $result->setData($data);
     }
 
     /**
@@ -50,26 +71,22 @@ class Connect extends Action
                 $this->config->getApiKey()
             );
 
-            if(in_array($this->config->getConnectId(), $validConnectIds)) {
-                $data = [
-                    'message' => __('Connect is valid'),
-                    'class' => 'valid'
-                ];
+            if (in_array($this->config->getConnectId(), $validConnectIds)) {
+                return $this->returnResult(
+                    __('Connect is valid'),
+                    self::VALID_CLASS
+                );
             } else {
-                $data = [
-                    'message' => __('Connect is invalid'),
-                    'class' => 'invalid'
-                ];
+                return $this->returnResult(
+                    __('Connect is invalid'),
+                    self::INVALID_CLASS
+                );
             }
         } catch (LocalizedException|GuzzleException $exception) {
-            $data = [
-                'message' => $exception->getMessage(),
-                'class' => 'invalid'
-            ];
+           return $this->returnResult(
+                $exception->getMessage(),
+                self::INVALID_CLASS
+            );
         }
-
-        $result = $this->resultJsonFactory->create();
-
-        return $result->setData($data);
     }
 }
