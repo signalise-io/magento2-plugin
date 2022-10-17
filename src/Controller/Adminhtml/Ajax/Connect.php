@@ -18,32 +18,35 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Phrase;
 use Signalise\PhpClient\Client\ApiClient;
 use Signalise\PhpClient\Exception\ResponseException;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 
 class Connect extends Action
 {
+    private const VALID_CLASS   = 'valid';
+    private const INVALID_CLASS = 'invalid';
+
     protected JsonFactory $resultJsonFactory;
 
     private ApiClient $apiClient;
 
     private SignaliseConfig $config;
 
-    private const VALID_CLASS   = 'valid';
-    private const INVALID_CLASS = 'invalid';
-
+    private Logger $logger;
 
     public function __construct(
         Context         $context,
         JsonFactory     $resultJsonFactory,
         ApiClient       $apiClient,
-        SignaliseConfig $config
-    )
-    {
+        SignaliseConfig $config,
+        Logger $logger
+    ) {
         parent::__construct($context);
 
         $this->resultJsonFactory = $resultJsonFactory;
         $this->apiClient         = $apiClient;
         $this->config            = $config;
+        $this->logger            = $logger;
     }
 
     /**
@@ -51,14 +54,12 @@ class Connect extends Action
      */
     private function returnResult($message, string $class): Json
     {
-        $data = [
-            'message' => $message,
-            'class' => $class
-        ];
-
         $result = $this->resultJsonFactory->create();
 
-        return $result->setData($data);
+        return $result->setData([
+            'message' => $message,
+            'class' => $class
+        ]);
     }
 
     /**
@@ -83,6 +84,10 @@ class Connect extends Action
                 );
             }
         } catch (LocalizedException|GuzzleException $exception) {
+            $this->logger->critical(
+                $exception->getMessage()
+            );
+
            return $this->returnResult(
                 $exception->getMessage(),
                 self::INVALID_CLASS

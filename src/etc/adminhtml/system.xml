@@ -8,7 +8,7 @@
             <resource>Signalise_Plugin::config</resource>
             <label>Signalise Api Settings</label>
             <tab>signalise</tab>
-            <group id="general" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="connection" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Signalise Api Settings</label>
                 <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Api key</label>
@@ -26,10 +26,25 @@
                     <label>Active Events</label>
                     <source_model>Signalise\Plugin\Model\Config\Source\Events</source_model>
                 </field>
+            </group>
+
+            <group id="debug" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Debug &amp; Logging</label>
+                <field id="logging_heading" translate="label" type="text" sortOrder="10" showInDefault="1"
+                       showInWebsite="1" showInStore="1">
+                    <label>Development Mode</label>
+                    <comment>Enable this config to disable pushing data to Signalise.</comment>
+                    <frontend_model>Signalise\Plugin\Block\Adminhtml\Heading</frontend_model>
+                </field>
                 <field id="development" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Development Mode</label>
                     <source_model>Signalise\Plugin\Model\Config\Source\Development</source_model>
-                    <comment>Doesn't send orders to signalise when enabled</comment>
+                </field>
+
+                <field id="error_button" translate="label" type="button" sortOrder="13" showInDefault="1"
+                       showInWebsite="0" showInStore="0">
+                    <label/>
+                    <frontend_model>Signalise\Plugin\Block\System\Config\Button\ErrorCheck</frontend_model>
                 </field>
             </group>
         </section>
