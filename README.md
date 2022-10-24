@@ -23,6 +23,7 @@ composer require signalise/magento2-plugin
 - Connect id (Needs to be configured for each store).
 - Active Events (You can select which event you want to activate). 
 - Development (When development is enabled, it is not possible to send data to signalise. However the events will be triggered and send to the queue).
+- Error log (Show last 100 error records).
 
 ![img.png](img.png)
 
@@ -37,6 +38,6 @@ We currently have 2 configurable events that will send data to signalise when it
 
 ## Support
 
-Signalise PHP Client is made by [Ndottens](https://github.com/Ndottens).
+Signalise Plugin is made by [Ndottens](https://github.com/Ndottens).
 
 If you find a bug or want to submit an improvement, don't hesitate to create a merge request on Gitlab.
