@@ -46,6 +46,7 @@
                 <field id="error_button" translate="label" type="button" sortOrder="130" showInDefault="1"
                        showInWebsite="0" showInStore="0">
                     <label>Error Log</label>
+                    <comment>Check last 100 error log records.</comment>
                     <frontend_model>Signalise\Plugin\Block\System\Config\Button\ErrorCheck</frontend_model>
                 </field>
             </group>

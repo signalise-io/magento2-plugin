@@ -48,7 +48,7 @@ class ErrorCheck extends Field
                 Button::class
             )->setData([
                 'id' => 'signalise-button_error',
-                'label' => __('Check last 100 error log records'),
+                'label' => __('Check logs'),
             ]);
             return $button->toHtml();
         } catch (Exception $e) {
