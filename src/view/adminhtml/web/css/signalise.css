@@ -8,6 +8,10 @@
     text-align: left;
 }
 
+.signalise-result_error-item {
+    margin-left: 20px;
+}
+
 .signalise-heading-block {
     background: white;
     padding: 1rem;
