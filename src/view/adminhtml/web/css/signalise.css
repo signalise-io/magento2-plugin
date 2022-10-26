@@ -1,0 +1,49 @@
+.signalise-header,
+.signalise-heading-block {
+    border: 0.1rem solid #adadad;
+    border-left: 4px solid #002b28;
+    color:#002b28;
+    font-size: 1.3rem;
+    display: flex;
+    text-align: left;
+}
+
+.signalise-result_error-item {
+    margin-left: 20px;
+}
+
+.signalise-heading-block {
+    background: white;
+    padding: 1rem;
+    text-align: left;
+}
+
+.signalise-heading-comment {
+    padding: 1rem 0rem 0rem 1rem;
+    font-size: 1.2rem;
+    line-height: 2.5rem;
+    border-left: 4px solid white;
+}
+
+.signalise-button_error,
+.signalise-button_debug {
+    border: none;
+    background: none;
+    padding: 0;
+    font-weight: 500;
+    font-size: 1.2rem;
+    color: #626262;
+}
+.signalise-button_error span,
+.signalise-button_debug span {
+    text-decoration: underline;
+}
+.signalise-button_error:before,
+.signalise-button_debug:before {
+    content: '\e80a';
+    font-size: 1.5rem;
+    line-height: 1.5rem;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 0.6rem;
+}

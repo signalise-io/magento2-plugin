@@ -23,10 +23,10 @@ use Signalise\Plugin\Model\Config\SignaliseConfig;
  */
 class SignaliseConfigTest extends TestCase
 {
-    private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/general/active_events';
-    private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/general/connect_id';
-    private const XML_PATH_API_KEY       = 'signalise_api_settings/general/api_key';
-    private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/general/development';
+    private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/connection/active_events';
+    private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/connection/connect_id';
+    private const XML_PATH_API_KEY       = 'signalise_api_settings/connection/api_key';
+    private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/debug/development';
 
     /**
      * @covers ::getActiveEvents

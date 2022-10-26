@@ -1,0 +1,12 @@
+<?php
+/**
+ * @var \Signalise\Plugin\Block\System\Config\Button\ErrorCheck $block ;
+ */
+?>
+<div id="signalise-result_error-modal"
+     data-signalise-endpoind-url="<?= $block->escapeUrl($block->getErrorCheckUrl()) ?>">
+    <div id="signalise-result_error">
+        <div class="result"></div>
+    </div>
+</div>
+<?= $block->getButtonHtml() ?>

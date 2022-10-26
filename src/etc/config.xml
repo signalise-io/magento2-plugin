@@ -2,11 +2,13 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <signalise_plugin>
-            <general>
+            <connection>
                 <api_key/>
                 <connect_id/>
+            </connection>
+            <debug>
                 <development/>
-            </general>
+            </debug>
         </signalise_plugin>
     </default>
 </config>
