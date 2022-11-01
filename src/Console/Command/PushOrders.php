@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
+use Exception;
 use Magento\Framework\Console\Cli;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -14,6 +15,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Signalise\Plugin\Logger\Logger;
 
 class PushOrders extends Command
 {
@@ -30,11 +32,14 @@ class PushOrders extends Command
 
     private CollectionFactory $collectionFactory;
 
+    private Logger $logger;
+
     public function __construct(
         OrderRepositoryInterface $orderRepository,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
+        Logger $logger,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -44,6 +49,7 @@ class PushOrders extends Command
         $this->orderPublisher        = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
         $this->collectionFactory     = $collectionFactory;
+        $this->logger                = $logger;
     }
 
     protected function configure(): void
@@ -67,13 +73,19 @@ class PushOrders extends Command
 
     private function pushOrderToQueue(Order $order, OutputInterface $output)
     {
-        $dto = $this->orderDataObjectHelper->create($order);
+        try {
+            $dto = $this->orderDataObjectHelper->create($order);
 
-        $this->orderPublisher->execute($dto);
+            $this->orderPublisher->execute($dto);
 
-        $output->writeln(
-            sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())
-        );
+            $output->writeln(
+                sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())
+            );
+        } catch (Exception $e) {
+            $this->logger->critical(
+                $e->getMessage()
+            );
+        }
     }
 
     /**

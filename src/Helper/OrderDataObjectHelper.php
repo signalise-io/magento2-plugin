@@ -14,6 +14,10 @@ class OrderDataObjectHelper
 {
     private TimezoneInterface $timezone;
 
+    private const HOUSE_NUMBER_PATTERN = "/[^0-9.]/";
+
+    private const STREET_PATTERN = "/[0-9]+/";
+
     public function __construct(
         TimezoneInterface $timezone
     ) {
@@ -35,12 +39,12 @@ class OrderDataObjectHelper
                 'valuta' => $order->getOrderCurrencyCode(),
                 'tax' => $order->getTaxAmount(),
                 'payment_method' => $order->getPayment()->getMethod(),
-                'payment_costs' => '',
+                'payment_costs' => $order->getPayment()->getAmountPaid() ?? '',
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_costs' => $order->getShippingAmount(),
                 'zip' => $order->getShippingAddress()->getPostcode(),
-                'street' => $order->getShippingAddress() ? $order->getShippingAddress()->getStreet()[0] : '',
-                'house_number' => '',
+                'street' => $this->getStreetOrHouseNumber($order->getShippingAddress()->getStreet()[0] ?? '', self::STREET_PATTERN),
+                'house_number' => $this->getStreetOrHouseNumber($order->getShippingAddress()->getStreet()[0] ?? '', self::HOUSE_NUMBER_PATTERN),
                 'city' => $order->getShippingAddress()->getCity(),
                 'country' => $order->getShippingAddress()->getCountryId(),
                 'status' => $order->getStatus(),
@@ -49,6 +53,12 @@ class OrderDataObjectHelper
             ]
         );
     }
+
+    private function getStreetOrHouseNumber(string $street, string $pattern): string
+    {
+        return preg_replace($pattern, "", $street);
+    }
+
     /**
      * @throws Exception
      */
