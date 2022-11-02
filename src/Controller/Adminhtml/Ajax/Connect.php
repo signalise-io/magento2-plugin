@@ -78,6 +78,10 @@ class Connect extends Action
                     self::VALID_CLASS
                 );
             } else {
+                $this->logger->critical(
+                    __('Connect is invalid')
+                );
+
                 return $this->returnResult(
                     __('Connect is invalid'),
                     self::INVALID_CLASS
