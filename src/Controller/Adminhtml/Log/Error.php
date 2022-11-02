@@ -14,6 +14,7 @@ use Magento\Framework\Controller\Result\JsonFactory;
 use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Filesystem\DirectoryList;
 use Magento\Framework\Filesystem\Driver\File;
+use Magento\Framework\Stdlib\DateTime\DateTimeFactory;
 
 class Error extends Action
 {
@@ -25,17 +26,21 @@ class Error extends Action
 
     private File $file;
 
+    private DateTimeFactory $dateTimeFactory;
+
     public function __construct(
         Action\Context $context,
         JsonFactory $resultJsonFactory,
         DirectoryList $dir,
-        File $file
+        File $file,
+        DateTimeFactory $dateTimeFactory
     ) {
         parent::__construct($context);
 
         $this->resultJsonFactory = $resultJsonFactory;
         $this->dir               = $dir;
         $this->file              = $file;
+        $this->dateTimeFactory   = $dateTimeFactory;
     }
 
     /**
@@ -62,6 +67,13 @@ class Error extends Action
         }
     }
 
+    public function getFormatDate(string $date): string
+    {
+        $dateModel = $this->dateTimeFactory->create();
+
+        return $dateModel->date('Y-m-d H:i:s', $date);
+    }
+
     /**
      * @throws FileSystemException
      */
@@ -73,14 +85,16 @@ class Error extends Action
             $fileContent = array_slice($fileContent, -100, 100, true);
         }
         $result = [];
+
         foreach ($fileContent as $line) {
             $data = explode('] ', $line);
             $date = ltrim(array_shift($data), '[');
             $data = implode('] ', $data);
             $data = explode(': ', $data);
             array_shift($data);
+
             $result[] = [
-                'date' => $date,
+                'date' => $this->getFormatDate($date),
                 'msg' => implode(': ', $data)
             ];
         }
