@@ -27,7 +27,7 @@ class OrderDataObjectHelper
     /**
      * @throws Exception
      */
-    public function create(Order $order, ?string $eventName): DataObject
+    public function create(Order $order, ?string $eventName = ''): DataObject
     {
         $dto = new DataObject();
 
@@ -43,13 +43,19 @@ class OrderDataObjectHelper
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_costs' => $order->getShippingAmount(),
                 'zip' => $order->getShippingAddress()->getPostcode(),
-                'street' => $this->getStreetOrHouseNumber($order->getShippingAddress()->getStreet()[0] ?? '', self::STREET_PATTERN),
-                'house_number' => $this->getStreetOrHouseNumber($order->getShippingAddress()->getStreet()[0] ?? '', self::HOUSE_NUMBER_PATTERN),
+                'street' => $this->getStreetOrHouseNumber(
+                    $order->getShippingAddress()->getStreet()[0] ?? '',
+                    self::STREET_PATTERN
+                ),
+                'house_number' => $this->getStreetOrHouseNumber(
+                    $order->getShippingAddress()->getStreet()[0] ?? '',
+                    self::HOUSE_NUMBER_PATTERN
+                ),
                 'city' => $order->getShippingAddress()->getCity(),
                 'country' => $order->getShippingAddress()->getCountryId(),
                 'status' => $order->getStatus(),
                 'date' => $this->createFormattedDate($order->getCreatedAt()),
-                'tag' => $eventName ?? ''
+                'tag' => $eventName
             ]
         );
     }

@@ -47,7 +47,7 @@ class OrderDataObjectHelperTest extends TestCase
         $order = $this->createMock(Order::class);
 
         $order
-            ->expects(self::once())
+            ->expects(self::atLeastOnce())
             ->method('getPayment')
             ->willReturn(
                 $this->createMock(OrderPaymentInterface::class)
@@ -70,7 +70,7 @@ class OrderDataObjectHelperTest extends TestCase
             ->method('getPostcode')
             ->willReturn('9932HN');
 
-        $address->expects(self::once())
+        $address->expects(self::atLeastOnce())
             ->method('getStreet')
             ->willReturn(['Delf 11']);
 

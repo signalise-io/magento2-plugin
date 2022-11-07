@@ -18,6 +18,7 @@ use ReflectionException;
 use ReflectionMethod;
 use Signalise\Plugin\Console\Command\PushOrders;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -45,7 +46,8 @@ class PushOrdersTest extends TestCase
             $this->createOrderRepositoryInterfaceMock($isSingle),
             $this->createMock(OrderPublisher::class),
             $this->createMock(OrderDataObjectHelper::class),
-            $this->createCollectionFactoryMock($isSingle)
+            $this->createCollectionFactoryMock($isSingle),
+            $this->createMock(Logger::class)
         );
 
         $reflectionMethod = new ReflectionMethod($subject, 'execute');

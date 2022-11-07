@@ -14,6 +14,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Sales\Model\Order;
 use PHPUnit\Framework\TestCase;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 use Signalise\Plugin\Observer\Sales\OrderPlaceAfterObserver;
 use Signalise\Plugin\Publisher\OrderPublisher;
@@ -40,7 +41,8 @@ class OrderPlaceAfterObserverTest extends TestCase
         $subject = new OrderPlaceAfterObserver(
             $this->createMock(OrderPublisher::class),
             $this->createMock(OrderDataObjectHelper::class),
-            $this->createSignaliseConfigMock()
+            $this->createSignaliseConfigMock(),
+            $this->createMock(Logger::class)
         );
 
         $subject->execute(
