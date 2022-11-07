@@ -38,6 +38,7 @@ class OrderConsumer
 
         try {
             $this->apiClient->postOrderHistory(
+                $this->config->getApiUrl(),
                 $this->config->getApiKey(),
                 $serializedData,
                 $this->config->getConnectId()

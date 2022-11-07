@@ -8,8 +8,12 @@
             <resource>Signalise_Plugin::config</resource>
             <label>Signalise Api Settings</label>
             <tab>signalise</tab>
+
             <group id="connection" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Signalise Api Settings</label>
+                <field id="api_url" translate="label" type="text" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Api Url</label>
+                </field>
                 <field id="api_key" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Api key</label>
                     <comment>Enter your api key to connect with Signalise</comment>
@@ -21,6 +25,7 @@
                 <field id="connect_button" translate="label" type="button" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Check Connect</label>
                     <frontend_model>Signalise\Plugin\Block\System\Config\ConnectButton</frontend_model>
+                    <comment>Save config before you try to connect.</comment>
                 </field>
                 <field id="active_events" translate="label" type="multiselect" sortOrder="60" showInDefault="1" showInWebsite="0" showInStore="0">
                     <label>Active Events</label>

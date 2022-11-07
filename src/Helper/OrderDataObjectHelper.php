@@ -27,7 +27,7 @@ class OrderDataObjectHelper
     /**
      * @throws Exception
      */
-    public function create(Order $order): DataObject
+    public function create(Order $order, ?string $eventName): DataObject
     {
         $dto = new DataObject();
 
@@ -49,7 +49,7 @@ class OrderDataObjectHelper
                 'country' => $order->getShippingAddress()->getCountryId(),
                 'status' => $order->getStatus(),
                 'date' => $this->createFormattedDate($order->getCreatedAt()),
-                'tag' => ''
+                'tag' => $eventName ?? ''
             ]
         );
     }

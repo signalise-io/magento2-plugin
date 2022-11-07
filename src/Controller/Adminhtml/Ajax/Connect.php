@@ -69,15 +69,11 @@ class Connect extends Action
     {
         try {
             $validConnectIds = $this->apiClient->getConnects(
+                $this->config->getApiUrl(),
                 $this->config->getApiKey()
             );
 
-            if (in_array($this->config->getConnectId(), $validConnectIds)) {
-                return $this->returnResult(
-                    __('Connect is valid'),
-                    self::VALID_CLASS
-                );
-            } else {
+            if (!in_array($this->config->getConnectId(), $validConnectIds)) {
                 $this->logger->critical(
                     __('Connect is invalid')
                 );
@@ -87,7 +83,13 @@ class Connect extends Action
                     self::INVALID_CLASS
                 );
             }
-        } catch (LocalizedException|GuzzleException $exception) {
+
+            return $this->returnResult(
+                __('Connect is valid'),
+                self::VALID_CLASS
+            );
+
+        } catch (LocalizedException | GuzzleException $exception) {
             $this->logger->critical(
                 $exception->getMessage()
             );
