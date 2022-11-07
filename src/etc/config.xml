@@ -3,6 +3,7 @@
     <default>
         <signalise_plugin>
             <connection>
+                <api_url/>
                 <api_key/>
                 <connect_id/>
             </connection>

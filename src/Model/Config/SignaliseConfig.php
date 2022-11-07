@@ -12,6 +12,7 @@ use Magento\Store\Model\StoreManagerInterface;
 
 class SignaliseConfig
 {
+    private const XML_PATH_API_URL       = 'signalise_api_settings/connection/api_url';
     private const XML_PATH_API_KEY       = 'signalise_api_settings/connection/api_key';
     private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/connection/connect_id';
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/connection/active_events';
@@ -27,6 +28,26 @@ class SignaliseConfig
     ) {
         $this->scopeConfig  = $scopeConfig;
         $this->storeManager = $storeManager;
+    }
+
+    /**
+     * @throws LocalizedException
+     */
+    public function getApiUrl(): string
+    {
+        $apiKey = $this->scopeConfig->getValue(
+            self::XML_PATH_API_URL,
+            ScopeInterface::SCOPE_STORE,
+            Store::DEFAULT_STORE_ID
+        );
+
+        if (empty($apiKey)) {
+            throw new LocalizedException(
+                __('Api url has not been configured.')
+            );
+        }
+
+        return $apiKey;
     }
 
     /**

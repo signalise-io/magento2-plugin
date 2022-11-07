@@ -24,6 +24,7 @@ class OrderConsumerTest extends TestCase
     private const STATUS_CREATED               = 201;
     private const STATUS_UNPROCESSABLE_CONTENT = 422;
     private const STATUS_BAD_REQUEST           = 400;
+    private const SIGNALISE_API_URL            = 'https://signalise.com';
 
     /**
      * @covers ::__construct
@@ -76,6 +77,10 @@ class OrderConsumerTest extends TestCase
             ->method('getConnectId')
             ->willReturn($connectId);
 
+        $config->expects($statusCode === self::STATUS_BAD_REQUEST ? self::never() : self::once())
+            ->method('getApiUrl')
+            ->willReturn(self::SIGNALISE_API_URL);
+
         return $config;
     }
 
@@ -92,6 +97,7 @@ class OrderConsumerTest extends TestCase
             $apiClient->expects(self::once())
                 ->method('postOrderHistory')
                 ->with(
+                    self::SIGNALISE_API_URL,
                     $apiKey,
                     $serializedData,
                     $connectId
