@@ -12,6 +12,7 @@ namespace Signalise\Plugin\Test\Consumer;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\TestCase;
 use Signalise\PhpClient\Client\ApiClient;
+use Signalise\PhpClient\Exception\ResponseException;
 use Signalise\Plugin\Consumer\OrderConsumer;
 use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
@@ -112,14 +113,14 @@ class OrderConsumerTest extends TestCase
     public function setDataProvider(): array
     {
         return [
-            'developmentMode' => [
+            'invalid_development_mode' => [
                 'data' => '',
                 'responseMessage' => [],
                 'statusCode' => self::STATUS_BAD_REQUEST,
                 'apiKey' => '',
                 'connectId' => ''
             ],
-            'successful' => [
+            'valid' => [
                 'data' => '{
                     "records": [
                         {
@@ -150,7 +151,7 @@ class OrderConsumerTest extends TestCase
                 'apiKey' => '43224352',
                 'connectId' => '7e618144-3e5f-11ed-b878-0242ac120002'
             ],
-            'failed' => [
+            'invalid' => [
                 'data' => 'unprocessable entry',
                 'responseMessage' => [
                     'message' => "Error while uploading"

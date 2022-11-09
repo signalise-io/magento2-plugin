@@ -23,10 +23,36 @@ use Signalise\Plugin\Model\Config\SignaliseConfig;
  */
 class SignaliseConfigTest extends TestCase
 {
-    private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/connection/active_events';
-    private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/connection/connect_id';
+    private const XML_PATH_API_URL       = 'signalise_api_settings/connection/api_url';
     private const XML_PATH_API_KEY       = 'signalise_api_settings/connection/api_key';
+    private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/connection/connect_id';
+    private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/connection/active_events';
     private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/debug/development';
+
+
+    /**
+     * @covers ::getApiUrl
+     * @covers ::__construct
+     * @throws LocalizedException
+     * @dataProvider setApiUrlDataProvider
+     */
+    public function testGetApiUrl(string $value): void
+    {
+        $subject = new SignaliseConfig(
+            $this->createScopeConfigInterfaceMock(
+                self::XML_PATH_API_URL,
+                $value,
+                Store::DEFAULT_STORE_ID
+            ),
+            $this->createMock(StoreManagerInterface::class)
+        );
+
+        if (empty($value)) {
+            $this->expectException(LocalizedException::class);
+        }
+
+        $subject->getApiUrl();
+    }
 
     /**
      * @covers ::getActiveEvents
@@ -50,7 +76,7 @@ class SignaliseConfigTest extends TestCase
      * @covers ::getApiKey
      * @covers ::__construct
      * @throws LocalizedException
-     * @dataProvider setDataProvider
+     * @dataProvider setApiKeyDataProvider
      */
     public function testGetApiKey(string $value): void
     {
@@ -176,13 +202,25 @@ class SignaliseConfigTest extends TestCase
         ];
     }
 
-    public function setDataProvider(): array
+    public function setApiUrlDataProvider(): array
     {
         return [
-            'getApiKeyValue' => [
+            'valid' => [
+                'https://signalise.nl/'
+            ],
+            'invalid' => [
+                ''
+            ]
+        ];
+    }
+
+    public function setApiKeyDataProvider(): array
+    {
+        return [
+            'valid' => [
                 '423848242737',
             ],
-            'getApiKeyLocalizedException' => [
+            'invalid' => [
                 ''
             ]
         ];
