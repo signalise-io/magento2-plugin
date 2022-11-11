@@ -24,7 +24,9 @@ use Signalise\Plugin\Model\Config\SignaliseConfig;
 class Connect extends Action
 {
     private const VALID_CLASS   = 'valid';
+    private const VALID_LABEL   = 'Connect is valid';
     private const INVALID_CLASS = 'invalid';
+    private const INVALID_LABEL = 'Connect is invalid, check error log for more information.';
 
     protected JsonFactory $resultJsonFactory;
 
@@ -35,9 +37,9 @@ class Connect extends Action
     private Logger $logger;
 
     public function __construct(
-        Context         $context,
-        JsonFactory     $resultJsonFactory,
-        ApiClient       $apiClient,
+        Context $context,
+        JsonFactory $resultJsonFactory,
+        ApiClient $apiClient,
         SignaliseConfig $config,
         Logger $logger
     ) {
@@ -56,10 +58,12 @@ class Connect extends Action
     {
         $result = $this->resultJsonFactory->create();
 
-        return $result->setData([
-            'message' => $message,
-            'class' => $class
-        ]);
+        return $result->setData(
+            [
+                'message' => $message,
+                'class' => $class
+            ]
+        );
     }
 
     /**
@@ -75,29 +79,25 @@ class Connect extends Action
 
             if (!in_array($this->config->getConnectId(), $validConnectIds)) {
                 $this->logger->critical(
-                    __('Connect is invalid')
+                    __(self::INVALID_LABEL)
                 );
 
                 return $this->returnResult(
-                    __('Connect is invalid'),
+                    __(self::INVALID_LABEL),
                     self::INVALID_CLASS
                 );
             }
 
             return $this->returnResult(
-                __('Connect is valid'),
+                __(self::VALID_LABEL),
                 self::VALID_CLASS
             );
-
         } catch (LocalizedException | GuzzleException $exception) {
             $this->logger->critical(
                 $exception->getMessage()
             );
 
-           return $this->returnResult(
-                $exception->getMessage(),
-                self::INVALID_CLASS
-            );
+            return $this->returnResult(__(self::INVALID_LABEL), self::INVALID_CLASS);
         }
     }
 }

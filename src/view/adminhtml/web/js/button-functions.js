@@ -28,7 +28,9 @@ require([
             if (Array.isArray(result)) {
 
                 var lisHtml = result.map(function (err) {
-                    return '<li class="signalise-result_error-item"><strong>' + err.date + '</strong><p>' + err.msg + '</p></li>';
+                    if(err.msg.length >= 1) {
+                        return '<li class="signalise-result_error-item"><strong>' + err.date + '</strong><p>' + err.msg + '</p></li>';
+                    }
                 }).join('');
 
                 $container.find('.result').empty().append('<ul>' + lisHtml + '</ul>');
