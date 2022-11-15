@@ -38,6 +38,4 @@ We currently have 2 configurable events that will send data to signalise when it
 
 ## Support
 
-Signalise Plugin is made by [Ndottens](https://github.com/Ndottens).
-
-If you find a bug or want to submit an improvement, don't hesitate to create a merge request on Gitlab.
+If you find a bug or want to submit an improvement, don't hesitate to create a merge request.
