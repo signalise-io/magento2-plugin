@@ -4,6 +4,7 @@
 		<arguments>
 			<argument name="commands" xsi:type="array">
 				<item name="push-order" xsi:type="object">Signalise\Plugin\Console\Command\PushOrders</item>
+                <item name="setup" xsi:type="object">Signalise\Plugin\Console\Command\SetUp</item>
 			</argument>
 		</arguments>
 	</type>
