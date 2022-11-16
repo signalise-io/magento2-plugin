@@ -9,10 +9,13 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
+use Magento\Framework\Console\Cli;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
+use Symfony\Component\Console\Question\Question;
 
 class setUp extends Command
 {
@@ -23,6 +26,7 @@ class setUp extends Command
 
     public function __construct(
         WriterInterface $configWriter,
+
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -31,7 +35,8 @@ class setUp extends Command
         $this->configWriter = $configWriter;
     }
 
-    private function setConfigData($path, $value): void
+
+    private function setConfigData(string $path, string $value): void
     {
         $this->configWriter->save($path, $value);
     }
@@ -49,14 +54,30 @@ class setUp extends Command
         return [];
     }
 
+    private function askQuestion(
+        InputInterface $input,
+        OutputInterface $output,
+        string $question
+    ): string {
+        $helper = $this->getHelper('question');
+
+        $question = new Question($question);
+
+        return $helper->ask($input, $output, $question);
+    }
+
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $credentials = $this->retrieveSetupCredentials();
+        // ask api url && api key
 
-        foreach ($credentials as $credential => $path) {
-            $this->setConfigData($path, $credential);
-        }
 
-        return 0;
+
+        //$credentials = $this->retrieveSetupCredentials();
+
+        //foreach ($credentials as $credential => $path) {
+        //    $this->setConfigData($path, $credential);
+        //}
+
+        return Cli::RETURN_SUCCESS;
     }
 }
