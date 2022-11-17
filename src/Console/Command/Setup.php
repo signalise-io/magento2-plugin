@@ -28,7 +28,7 @@ use Magento\Framework\App\Config\Storage\WriterInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\Question;
 
-class setUp extends Command
+class Setup extends Command
 {
     private const XML_PATH_API_URL                    = 'signalise_api_settings/connection/api_url';
     private const XML_PATH_API_KEY                    = 'signalise_api_settings/connection/api_key';
