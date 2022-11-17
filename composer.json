@@ -21,7 +21,7 @@
         "elgentos/testing-suite": "dev-main",
         "elgentos/coding-standard-phpstorm": "dev-master",
         "youwe/coding-standard-magento2": "^1.7.0",
-        "signalise/php-client": "dev-1-api-client"
+        "signalise/php-client": "^1.1"
     },
     "repositories": {
         "magento": {
