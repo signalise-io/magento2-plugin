@@ -8,7 +8,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
-use Magento\Store\Model\StoreManagerInterface;
 
 class SignaliseConfig
 {
@@ -20,25 +19,20 @@ class SignaliseConfig
 
     private ScopeConfigInterface $scopeConfig;
 
-    private StoreManagerInterface $storeManager;
-
-    public function __construct(
-        ScopeConfigInterface $scopeConfig,
-        StoreManagerInterface $storeManager
-    ) {
-        $this->scopeConfig  = $scopeConfig;
-        $this->storeManager = $storeManager;
+    public function __construct(ScopeConfigInterface $scopeConfig)
+    {
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
      * @throws LocalizedException
      */
-    public function getApiUrl(): string
+    public function getApiUrl(int $storeId = 0): string
     {
         $apiKey = $this->scopeConfig->getValue(
             self::XML_PATH_API_URL,
             ScopeInterface::SCOPE_STORE,
-            Store::DEFAULT_STORE_ID
+            $storeId
         );
 
         if (empty($apiKey)) {
@@ -53,12 +47,12 @@ class SignaliseConfig
     /**
      * @throws LocalizedException
      */
-    public function getApiKey(): string
+    public function getApiKey(int $storeId = 0): string
     {
         $apiKey = $this->scopeConfig->getValue(
             self::XML_PATH_API_KEY,
             ScopeInterface::SCOPE_STORE,
-            Store::DEFAULT_STORE_ID
+            $storeId
         );
 
         if (empty($apiKey)) {
@@ -84,12 +78,12 @@ class SignaliseConfig
     /**
      * @throws LocalizedException
      */
-    public function getConnectId(): string
+    public function getConnectId(int $storeId = 0): string
     {
         $connectId = $this->scopeConfig->getValue(
             self::XML_PATH_CONNECT_ID,
             ScopeInterface::SCOPE_STORE,
-            $this->storeManager->getStore()->getId()
+            $storeId
         );
 
         if (empty($connectId)) {
