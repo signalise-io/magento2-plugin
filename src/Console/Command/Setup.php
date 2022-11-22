@@ -18,7 +18,6 @@ use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Signalise\PhpClient\Client\ApiClient;
 use Signalise\PhpClient\Exception\ResponseException;
-use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -43,12 +42,11 @@ class Setup extends Command
     private const STORE_CODE_OPTION_NAME              = 'select-store';
     private const STORE_CODE_OPTION_DESCRIPTION       = 'Select the store code you want to create a connection for';
     private const DEFAULT_STORES_TYPE_NAME            = 'stores';
+    private const DEFAULT_SCOPE_ID                    = 0;
 
     private WriterInterface $configWriter;
 
     private StoreManagerInterface $storeManager;
-
-    private Logger $logger;
 
     private ApiClient $client;
 
@@ -62,7 +60,6 @@ class Setup extends Command
         WriterInterface $configWriter,
         StoreManagerInterface $storeManager,
         ApiClient $client,
-        Logger $logger,
         SignaliseConfig $config,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
@@ -87,7 +84,6 @@ class Setup extends Command
         $this->configWriter = $configWriter;
         $this->storeManager = $storeManager;
         $this->client       = $client;
-        $this->logger       = $logger;
         $this->config       = $config;
     }
 
@@ -129,13 +125,13 @@ class Setup extends Command
         OutputInterface $output,
         StoreInterface $store
     ): array {
-        if($input->getOption(self::SKIP_CREDENTIALS_OPTION_NAME)) {
-            $this->apiUrl = $this->config->getApiUrl();
-            $this->apiKey = $this->config->getApiKey();
-        } else {
-            $this->apiUrl =  $this->askQuestion($input, $output, self::ENTER_API_URL_LABEL);
-            $this->apiKey =  $this->askQuestion($input, $output, self::ENTER_API_KEY_LABEL);
-        }
+        $this->apiUrl = $input->getOption(self::SKIP_CREDENTIALS_OPTION_NAME)
+            ? $this->config->getApiUrl()
+            : $this->askQuestion($input, $output, self::ENTER_API_URL_LABEL);
+
+        $this->apiKey = $input->getOption(self::SKIP_CREDENTIALS_OPTION_NAME)
+            ? $this->config->getApiKey()
+            : $this->askQuestion($input, $output, self::ENTER_API_KEY_LABEL);
 
         return [
             'name' => $store->getName(),
@@ -182,7 +178,7 @@ class Setup extends Command
             $path,
             $value,
             $this->defaultStoreConfigCheck($store) ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : self::DEFAULT_STORES_TYPE_NAME,
-            $this->defaultStoreConfigCheck($store) ? 0 : $store->getStoreGroupId()
+            $this->defaultStoreConfigCheck($store) ? self::DEFAULT_SCOPE_ID : $store->getStoreGroupId()
         );
 
         $output->writeln(
@@ -195,11 +191,9 @@ class Setup extends Command
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        if($input->getOption(self::STORE_CODE_OPTION_NAME)) {
-            $store = $this->retrieveStore($input, $output);
-        } else {
-            $store = $this->storeManager->getStore();
-        }
+        $store = $input->getOption(self::STORE_CODE_OPTION_NAME)
+            ? $this->retrieveStore($input, $output)
+            : $this->storeManager->getStore();
 
         $formData = $this->retrieveAnswerData(
             $input,
