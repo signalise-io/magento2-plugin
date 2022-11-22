@@ -19,10 +19,9 @@ class SignaliseConfig
 
     private ScopeConfigInterface $scopeConfig;
 
-    public function __construct(
-        ScopeConfigInterface $scopeConfig
-    ) {
-        $this->scopeConfig  = $scopeConfig;
+    public function __construct(ScopeConfigInterface $scopeConfig)
+    {
+        $this->scopeConfig = $scopeConfig;
     }
 
     /**
