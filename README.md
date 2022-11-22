@@ -27,6 +27,43 @@ composer require signalise/magento2-plugin
 
 ![img.png](img.png)
 
+## Setup command
+
+Setup console command: ``bin/magento signalise:setup``
+
+#### Options:
+- -s | --skip-credentials (Skip the url and key credentials step).
+- -c | --select-store (Select the store code you want to create a connection for).
+
+### Scenario 1:
+you want to create a connection for a new store and this is the first time you installed this plugin.
+
+- run ``bin/magento signalise:setup``
+- Enter api url
+- Enter Api key
+
+This will create a connect id for the default store.
+
+### Scenario 2:
+
+You want to create a connect id for a specific store but you haven't set the key & url yet.
+
+- run ``bin/magento signalise:setup -c``
+- Select the store you want to create a connection for. (This wil show a select option for all stores that are created)
+- Enter api url
+- Enter Api key
+
+This will create a connect id for the selected store.
+
+### Scenario 3:
+
+You want to create a connect id for a specific store but you already  set the key & url value.
+
+- run ``bin/magento signalise:setup -c -s``
+- Select the store you want to create a connection for. (This wil show a select option for all stores that are created)
+
+This will create a connect id for the selected store (And you skipped the api url and api key step).
+
 ## Events
 
 We currently have 2 configurable events that will send data to signalise when it gets triggered. 
@@ -34,7 +71,7 @@ We currently have 2 configurable events that will send data to signalise when it
 - ``sales_order_place_after`` - This event will be triggered when you place an order.
 - ``sales_order_payment_pay`` - This event will be triggered when you pay after you placed an order.
 
-> **More events will be added in the future** 
+> **More events will be added in the future**
 
 ## Support
 
