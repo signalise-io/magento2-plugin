@@ -158,8 +158,14 @@ class Setup extends Command
 
         $question->setErrorMessage('Store %s is invalid.');
 
+        $store = $helper->ask($input, $output, $question);
+
+        $output->writeln(
+            sprintf('<info>You have selected store: %s</info>', $store)
+        );
+
         return $this->storeManager->getStore(
-           $helper->ask($input, $output, $question)
+            $store
         );
     }
 
@@ -174,15 +180,24 @@ class Setup extends Command
 
     private function setConfigData(OutputInterface $output, string $path, string $value, StoreInterface $store): void
     {
+        $scope = $this->defaultStoreConfigCheck($store) ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : self::DEFAULT_STORES_TYPE_NAME;
+        $scopeId = $this->defaultStoreConfigCheck($store) ? self::DEFAULT_SCOPE_ID : $store->getStoreGroupId();
+
         $this->configWriter->save(
             $path,
             $value,
-            $this->defaultStoreConfigCheck($store) ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : self::DEFAULT_STORES_TYPE_NAME,
-            $this->defaultStoreConfigCheck($store) ? self::DEFAULT_SCOPE_ID : $store->getStoreGroupId()
+            $scope,
+            $scopeId
         );
 
         $output->writeln(
-            sprintf('<comment>Saved: %s in config with value: %s</comment>', $path, $value)
+            sprintf(
+                "<comment>Saved in Config path: %s with Value: %s for Scope: %s with Scope id: %s</comment>",
+                $path,
+                $value,
+                $scope,
+                $scopeId
+            )
         );
     }
 
