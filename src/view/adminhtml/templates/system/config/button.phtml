@@ -33,7 +33,6 @@
                 data: params,
                 dataType: 'json'
             }).done(function (data) {
-                console.log(data)
                 jQuery('#connect_button_message_response').text(data.message).addClass(data.class);
             });
         });
