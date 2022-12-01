@@ -27,10 +27,6 @@
         "magento": {
             "type": "composer",
             "url": "https://repo.magento.com"
-        },
-        "phpclient": {
-            "type": "path",
-            "url": "../signalise-php-client"
         }
     },
     "autoload": {
