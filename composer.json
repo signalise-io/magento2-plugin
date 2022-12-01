@@ -20,13 +20,17 @@
     },
     "require-dev": {
         "elgentos/testing-suite": "dev-main",
-        "elgentos/coding-standard-phpstorm": "dev-master",
+        "elgentos/coding-standard-phpstorm": "^1.0.0",
         "youwe/coding-standard-magento2": "^1.7.0"
     },
     "repositories": {
         "magento": {
             "type": "composer",
             "url": "https://repo.magento.com"
+        },
+        "signalise/php-client": {
+            "type": "vcs",
+            "url": "https://github.com/signalise-io/php-api-client.git"
         }
     },
     "autoload": {
@@ -48,7 +52,9 @@
             "elgentos/coding-standard-phpstorm": true,
             "phpro/grumphp-shim": true,
             "youwe/testing-suite": true,
-            "magento/composer-dependency-version-audit-plugin": true
+            "magento/composer-dependency-version-audit-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "digitalrevolution/php-codesniffer-baseline": true
         }
     },
     "archive": {
