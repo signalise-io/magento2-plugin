@@ -15,13 +15,14 @@ use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Api\Data\StoreInterface;
+use Magento\Store\Api\StoreRepositoryInterface;
+use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Signalise\PhpClient\Client\ApiClient;
 use Signalise\PhpClient\Exception\ResponseException;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Magento\Framework\App\Config\Storage\WriterInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
@@ -29,69 +30,56 @@ use Symfony\Component\Console\Question\Question;
 
 class Setup extends Command
 {
-    private const XML_PATH_API_URL                    = 'signalise_api_settings/connection/api_url';
-    private const XML_PATH_API_KEY                    = 'signalise_api_settings/connection/api_key';
-    private const XML_PATH_CONNECT_ID                 = 'signalise_api_settings/connection/connect_id';
-    private const ENTER_API_URL_LABEL                 = '<info>Enter api url: </info>';
-    private const ENTER_API_KEY_LABEL                 = '<info>Enter api key: </info>';
-    private const DEFAULT_COMMAND_NAME                = 'signalise:setup';
-    private const DEFAULT_COMMAND_DESCRIPTION         = 'Signalise configuration automatic setup';
-    private const DEFAULT_TYPE                        = 'magento';
-    private const SKIP_CREDENTIALS_OPTION_NAME        = 'skip-credentials';
-    private const SKIP_CREDENTIALS_OPTION_DESCRIPTION = 'Skip the url and key credentials step';
-    private const STORE_CODE_OPTION_NAME              = 'select-store';
-    private const STORE_CODE_OPTION_DESCRIPTION       = 'Select the store code you want to create a connection for';
-    private const DEFAULT_STORES_TYPE_NAME            = 'stores';
-    private const DEFAULT_SCOPE_ID                    = 0;
+    private const DEFAULT_COMMAND_NAME = 'signalise:setup';
+    private const DEFAULT_COMMAND_DESCRIPTION = 'Onboard setup command.';
 
-    private WriterInterface $configWriter;
+    private const API_KEY_INFO = '<info>Api key: %s</info>';
+    private const API_KEY_QUESTION = '<info>Enter api key:</info>';
 
-    private StoreManagerInterface $storeManager;
+    private const CONNECT_INFO = '<info>Connect name: %s</info>';
+    private const CONNECT_OPTION_QUESTION = '<info>Select option for connect name:</info>';
 
-    private ApiClient $client;
+    private const CONNECT_CREATE_NAME = 'Create connect name';
+    private const CONNECT_CREATE_NAME_QUESTION = '<info>Enter your connect name:</info>';
 
-    private SignaliseConfig $config;
+    private const CONNECT_CREATE_NAME_FROM_SELECTED_STORE = 'Create connect name from selected store';
+    private const CONNECT_CREATE_NAME_FROM_SELECTED_STORE_QUESTION = '<info>Select the store you want to create a connect for:</info>';
 
-    private string $apiUrl;
+    private const XML_PATH_API_KEY = 'signalise_api_settings/connection/api_key';
+    private const XML_PATH_CONNECT_ID = 'signalise_api_settings/connection/connect_id';
+
+    private bool $defaultScope;
 
     private string $apiKey;
 
+    private SignaliseConfig $config;
+    private StoreManagerInterface $storeManager;
+    private WriterInterface $configWriter;
+    private ApiClient $client;
+    private StoreRepositoryInterface $storeRepository;
+
     public function __construct(
-        WriterInterface $configWriter,
-        StoreManagerInterface $storeManager,
-        ApiClient $client,
         SignaliseConfig $config,
+        StoreManagerInterface $storeManager,
+        StoreRepositoryInterface $storeRepository,
+        WriterInterface $configWriter,
+        ApiClient $client,
+        $defaultScope = false,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-
-        $this->addOption(
-            self::SKIP_CREDENTIALS_OPTION_NAME,
-            's',
-            InputOption::VALUE_NONE,
-            self::SKIP_CREDENTIALS_OPTION_DESCRIPTION
-        );
-
-        $this->addOption(
-            self::STORE_CODE_OPTION_NAME,
-            'c',
-            InputOption::VALUE_NONE,
-            self::STORE_CODE_OPTION_DESCRIPTION
-        );
-
-        $this->configWriter = $configWriter;
+        $this->config = $config;
         $this->storeManager = $storeManager;
-        $this->client       = $client;
-        $this->config       = $config;
+        $this->configWriter = $configWriter;
+        $this->defaultScope = $defaultScope;
+        $this->client = $client;
+        $this->storeRepository = $storeRepository;
     }
 
-    private function askQuestion(
-        InputInterface $input,
-        OutputInterface $output,
-        string $question
-    ): string {
+    private function askQuestion(InputInterface $input, OutputInterface $output, string $question): string
+    {
         $helper = $this->getHelper('question');
 
         $question = new Question($question);
@@ -99,90 +87,125 @@ class Setup extends Command
         return $helper->ask($input, $output, $question);
     }
 
-    /**
-     * @throws ResponseException|GuzzleException
-     */
-    private function retrieveSetupCredentials(array $formData): array
+    private function setApiKey(InputInterface $input, OutputInterface $output): void
     {
-        $response = $this->client->createConnect(
-            $this->apiUrl,
-            $this->apiKey,
-            $formData
+        try {
+            $this->apiKey = $this->config->getApiKey();
+        } catch (LocalizedException $e) {
+            $this->apiKey = $this->askQuestion(
+                $input,
+                $output,
+                self::API_KEY_QUESTION
+            );
+        }
+
+        $output->writeln(
+            sprintf(self::API_KEY_INFO, $this->apiKey)
         );
 
-        return [
-            self::XML_PATH_API_URL => $this->apiUrl,
-            self::XML_PATH_API_KEY => $this->apiKey,
-            self::XML_PATH_CONNECT_ID => $response['data']['id']
-        ];
+        //@ todo add option if they want to change it.
+    }
+
+    private function askChoiceQuestion(
+        InputInterface $input,
+        OutputInterface $output,
+        string $question,
+        array $choices
+    ): string {
+        $helper = $this->getHelper('question');
+
+        $question = new ChoiceQuestion(
+            $question,
+            $choices,
+            0
+        );
+
+        return $helper->ask($input, $output, $question);
+    }
+
+    private function getStores(): array
+    {
+        $stores = [];
+
+        foreach($this->storeManager->getStores() as $store) {
+            $stores[] = $store->getCode();
+        }
+
+        return $stores;
+    }
+
+    private function getConnectName(InputInterface $input, OutputInterface $output): string
+    {
+        switch($this->askChoiceQuestion(
+            $input,
+            $output,
+            self::CONNECT_CREATE_NAME_QUESTION, [
+                self::CONNECT_CREATE_NAME,
+                self::CONNECT_CREATE_NAME_FROM_SELECTED_STORE
+            ]
+        )) {
+            case self::CONNECT_CREATE_NAME: {
+                $this->defaultScope = true;
+                return $this->askQuestion($input, $output, self::CONNECT_CREATE_NAME_QUESTION);
+            }
+            case self::CONNECT_CREATE_NAME_FROM_SELECTED_STORE: {
+                return $this->askChoiceQuestion(
+                    $input,
+                    $output,
+                    self::CONNECT_CREATE_NAME_FROM_SELECTED_STORE_QUESTION,
+                    $this->getStores()
+                );
+            }
+        }
     }
 
     /**
-     * @throws LocalizedException
+     * @throws ResponseException|GuzzleException|LocalizedException
      */
-    private function retrieveAnswerData(
-        InputInterface $input,
-        OutputInterface $output,
-        StoreInterface $store
-    ): array {
-        $this->apiUrl = $input->getOption(self::SKIP_CREDENTIALS_OPTION_NAME)
-            ? $this->config->getApiUrl()
-            : $this->askQuestion($input, $output, self::ENTER_API_URL_LABEL);
-
-        $this->apiKey = $input->getOption(self::SKIP_CREDENTIALS_OPTION_NAME)
-            ? $this->config->getApiKey()
-            : $this->askQuestion($input, $output, self::ENTER_API_KEY_LABEL);
-
-        return [
-            'name' => $store->getName(),
-            'type' => self::DEFAULT_TYPE
-        ];
+    private function createConnect(string $connectName): array
+    {
+        return $this->client->createConnect(
+            $this->config->getApiUrl(),
+            $this->apiKey, [
+                'name' => $connectName,
+                'type' => 'magento'
+            ]
+        );
     }
 
     /**
      * @throws NoSuchEntityException
      */
-    private function retrieveStore(InputInterface $input, OutputInterface $output): StoreInterface
+    private function getStoreId(string $storeCode): string
     {
-        $stores = [];
-        foreach($this->storeManager->getStores() as $store) {
-            $stores[] = $store->getCode();
-        }
-
-        $helper = $this->getHelper('question');
-        $question = new ChoiceQuestion(
-            'Select the store you want to create a connection for.',
-            $stores,
-            0
-        );
-
-        $question->setErrorMessage('Store %s is invalid.');
-
-        $store = $helper->ask($input, $output, $question);
-
-        $output->writeln(
-            sprintf('<info>You have selected store: %s</info>', $store)
-        );
-
-        return $this->storeManager->getStore(
-            $store
-        );
+        return (string)$this->storeRepository->get($storeCode)->getId();
     }
 
-    private function defaultStoreConfigCheck(StoreInterface $store): bool
+    /**
+     * @throws NoSuchEntityException
+     */
+    private function formatConfigData(array $connect): array
     {
-        if($store->getCode() === ScopeConfigInterface::SCOPE_TYPE_DEFAULT) {
-            return true;
+        $scope = [
+            'scope' => $this->defaultScope ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : ScopeInterface::SCOPE_STORE,
+            'id' => $this->defaultScope ? "0" : $this->getStoreId($connect['data']['name'])
+        ];
+
+        $config = [];
+        foreach([self::XML_PATH_API_KEY, self::XML_PATH_CONNECT_ID] as $path) {
+            $config[] = [
+                'path' => $path,
+                'value' => $path === self::XML_PATH_API_KEY ? $this->apiKey : $connect['data']['id'],
+                'scope' => $path === self::XML_PATH_API_KEY ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : $scope['scope'],
+                'scope_id' => $path === self::XML_PATH_API_KEY ? "0" : $scope['id']
+            ];
         }
 
-        return false;
+        return $config;
     }
 
-    private function setConfigData(OutputInterface $output, string $path, string $value, StoreInterface $store): void
+    private function setConfigData(OutputInterface $output, string $path, string $value, string $scope, string $scopeId): void
     {
-        $scope = $this->defaultStoreConfigCheck($store) ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : self::DEFAULT_STORES_TYPE_NAME;
-        $scopeId = $this->defaultStoreConfigCheck($store) ? self::DEFAULT_SCOPE_ID : $store->getStoreGroupId();
-
         $this->configWriter->save(
             $path,
             $value,
@@ -202,27 +225,20 @@ class Setup extends Command
     }
 
     /**
-     * @throws NoSuchEntityException|ResponseException|GuzzleException|LocalizedException
+     * @throws ResponseException|GuzzleException|LocalizedException
      */
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $store = $input->getOption(self::STORE_CODE_OPTION_NAME)
-            ? $this->retrieveStore($input, $output)
-            : $this->storeManager->getStore();
+        $this->setApiKey($input, $output);
 
-        $formData = $this->retrieveAnswerData(
-            $input,
-            $output,
-            $store
+        $connectName = $this->getConnectName($input, $output);
+
+        $configData = $this->formatConfigData(
+            $this->createConnect($connectName)
         );
 
-        foreach($this->retrieveSetupCredentials($formData) as $path => $value) {
-            $this->setConfigData(
-                $output,
-                $path,
-                $value,
-                $store
-            );
+        foreach($configData as $config) {
+            $this->setConfigData($output, $config['path'], $config['value'], $config['scope'], $config['scope_id']);
         }
 
         return Cli::RETURN_SUCCESS;
