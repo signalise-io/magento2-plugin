@@ -19,9 +19,9 @@
         "signalise/php-client": "^1.0"
     },
     "require-dev": {
-        "elgentos/testing-suite": "dev-main",
         "elgentos/coding-standard-phpstorm": "^1.0.0",
-        "youwe/coding-standard-magento2": "^1.7.0"
+        "elgentos/testing-suite": "dev-main",
+        "youwe/coding-standard-magento2": "^2.0.0"
     },
     "repositories": {
         "magento": {

@@ -30,17 +30,19 @@ class OrderPublisher
         $this->logger    = $logger;
     }
 
-    /**
-     * @return mixed|null
-     */
-    public function execute(DataObject $orderDataObject, string $storeId): mixed
+    public function execute(DataObject $orderDataObject, string $storeId): void
     {
         try {
-           return $this->publisher->publish(
-                self::TOPIC_NAME, $this->json->serialize([
-                    'records' => [$orderDataObject->getData()],
-                    'store_id' => $storeId
-                ])
+            $this->publisher->publish(
+                self::TOPIC_NAME,
+                $this->json->serialize(
+                    [
+                        'records' => [
+                            $orderDataObject->getData()
+                        ],
+                        'store_id' => $storeId
+                    ]
+                )
             );
         } catch (Exception $exception) {
             $this->logger->critical(

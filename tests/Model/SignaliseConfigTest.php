@@ -13,7 +13,6 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\Store;
-use Magento\Store\Model\StoreManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
 
@@ -27,7 +26,6 @@ class SignaliseConfigTest extends TestCase
     private const XML_PATH_CONNECT_ID    = 'signalise_api_settings/connection/connect_id';
     private const XML_PATH_ACTIVE_EVENTS = 'signalise_api_settings/connection/active_events';
     private const XML_PATH_DEVELOPMENT   = 'signalise_api_settings/debug/development';
-
 
     /**
      * @covers ::getApiUrl
@@ -149,7 +147,7 @@ class SignaliseConfigTest extends TestCase
             ->method('getValue')
             ->with(
                 $configPath,
-                ScopeInterface::SCOPE_STORE,
+                ScopeInterface::SCOPE_STORES,
                 $storeId
             )->willReturn(
                 $returnValue
@@ -176,7 +174,7 @@ class SignaliseConfigTest extends TestCase
     {
         return [
             'valid' => [
-                'https://signalise.nl/'
+                'https://signalise.io'
             ],
             'invalid' => [
                 ''

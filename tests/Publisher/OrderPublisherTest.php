@@ -11,6 +11,7 @@ namespace Signalise\Plugin\Test\Publisher;
 
 use Magento\Framework\DataObject;
 use PHPUnit\Framework\TestCase;
+use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Magento\Framework\MessageQueue\PublisherInterface;
 use Magento\Framework\Serialize\Serializer\Json;
@@ -21,23 +22,51 @@ use Magento\Framework\Serialize\Serializer\Json;
 class OrderPublisherTest extends TestCase
 {
     /**
+     * @param string $storeId
+     *
      * @return void
      *
      * @covers ::__construct
      * @covers ::execute
+     * @dataProvider setDataProvider
      */
-    public function testExecute(): void
+    public function testExecute(string $storeId): void
     {
         $dataObject = $this->createMock(DataObject::class);
 
         $subject = new OrderPublisher(
-            $this->createMock(Json::class),
-            $this->createPublisherInterfaceMock()
+            $this->createJsonMock(
+                $dataObject,
+                $storeId
+            ),
+            $this->createPublisherInterfaceMock(),
+            $this->createMock(Logger::class)
         );
 
         $subject->execute(
-            $dataObject
+            $dataObject,
+            $storeId
         );
+    }
+
+    public function createJsonMock(
+        DataObject $orderDataObject,
+        string $storeId
+    ): Json {
+        $json = $this->createMock(Json::class);
+
+        $json->expects(self::once())
+            ->method('serialize')
+            ->willReturn(
+                [
+                    'records' => [
+                        $orderDataObject->getData()
+                    ],
+                    'store_id' => $storeId
+                ]
+            );
+
+        return $json;
     }
 
     public function createPublisherInterfaceMock(): PublisherInterface
@@ -50,5 +79,17 @@ class OrderPublisherTest extends TestCase
             ->willReturn(null);
 
         return $publisher;
+    }
+
+    public function setDataProvider(): array
+    {
+        return [
+            'valid_default_store' => [
+                'store_id' => "0"
+            ],
+            'valid_random_store' => [
+                'store_id' => "22"
+            ]
+        ];
     }
 }
