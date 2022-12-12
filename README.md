@@ -29,40 +29,22 @@ composer require signalise/magento2-plugin
 
 ## Setup command
 
+This command will create a connect in Signalise.
+
 Setup console command: ``bin/magento signalise:setup``
 
-#### Options:
-- -s | --skip-credentials (Skip the url and key credentials step).
-- -c | --select-store (Select the store code you want to create a connection for).
+- Enter api key
+- Select store view or create custom connect name
 
-### Scenario 1:
-you want to create a connection for a new store and this is the first time you installed this plugin.
 
-- run ``bin/magento signalise:setup``
-- Enter api url
-- Enter Api key
+**Option 1: Create connect name from selected store**
 
-This will create a connect id for the default store.
+Selecting a store view will save the connect in the selected store config.
 
-### Scenario 2:
 
-You want to create a connect id for a specific store but you haven't set the key & url yet.
+**Option 2: Create connect name**
 
-- run ``bin/magento signalise:setup -c``
-- Select the store you want to create a connection for. (This wil show a select option for all stores that are created)
-- Enter api url
-- Enter Api key
-
-This will create a connect id for the selected store.
-
-### Scenario 3:
-
-You want to create a connect id for a specific store but you already  set the key & url value.
-
-- run ``bin/magento signalise:setup -c -s``
-- Select the store you want to create a connection for. (This wil show a select option for all stores that are created)
-
-This will create a connect id for the selected store (And you skipped the api url and api key step).
+This will give you an input field and will save the connect in global config.
 
 ## Events
 
@@ -74,5 +56,7 @@ We currently have 2 configurable events that will send data to signalise when it
 > **More events will be added in the future**
 
 ## Support
+
+Signalise PHP Client is made by [Ndottens](https://github.com/Ndottens).
 
 If you find a bug or want to submit an improvement, don't hesitate to create a merge request.
