@@ -30,33 +30,27 @@ use Symfony\Component\Console\Question\Question;
 
 class Setup extends Command
 {
-    private const DEFAULT_COMMAND_NAME = 'signalise:setup';
-    private const DEFAULT_COMMAND_DESCRIPTION = 'Onboard setup command.';
-
-    private const API_KEY_INFO = '<info>Api key: %s</info>';
-    private const API_KEY_QUESTION = '<info>Enter api key:</info>';
-
-    private const CONNECT_INFO = '<info>Connect name: %s</info>';
-    private const CONNECT_OPTION_QUESTION = '<info>Select option for connect name:</info>';
-
-    private const CONNECT_CREATE_NAME = 'Create connect name';
-    private const CONNECT_CREATE_NAME_QUESTION = '<info>Enter your connect name:</info>';
-
-    private const CONNECT_CREATE_NAME_FROM_SELECTED_STORE = 'Create connect name from selected store';
+    private const DEFAULT_COMMAND_NAME                             = 'signalise:setup';
+    private const DEFAULT_COMMAND_DESCRIPTION                      = 'Onboard setup command.';
+    private const API_KEY_INFO                                     = '<info>Api key: %s</info>';
+    private const API_KEY_QUESTION                                 = '<info>Enter api key:</info>';
+    private const XML_PATH_API_KEY                                 = 'signalise_api_settings/connection/api_key';
+    private const XML_PATH_CONNECT_ID                              = 'signalise_api_settings/connection/connect_id';
+    private const DEFAULT_SCOPE                                    = "0";
+    private const CONNECT_CREATE_NAME                              = 'Create connect name';
+    private const CONNECT_CREATE_NAME_QUESTION                     = '<info>Enter your connect name: </info>';
+    private const CONNECT_CREATE_NAME_FROM_SELECTED_STORE          = 'Create connect name from selected store';
     private const CONNECT_CREATE_NAME_FROM_SELECTED_STORE_QUESTION = '<info>Select the store you want to create a connect for:</info>';
-
-    private const XML_PATH_API_KEY = 'signalise_api_settings/connection/api_key';
-    private const XML_PATH_CONNECT_ID = 'signalise_api_settings/connection/connect_id';
-
-    private bool $defaultScope;
-
-    private string $apiKey;
 
     private SignaliseConfig $config;
     private StoreManagerInterface $storeManager;
     private WriterInterface $configWriter;
     private ApiClient $client;
     private StoreRepositoryInterface $storeRepository;
+
+    private bool $defaultScope;
+
+    private string $apiKey;
 
     public function __construct(
         SignaliseConfig $config,
@@ -102,8 +96,6 @@ class Setup extends Command
         $output->writeln(
             sprintf(self::API_KEY_INFO, $this->apiKey)
         );
-
-        //@ todo add option if they want to change it.
     }
 
     private function askChoiceQuestion(
@@ -187,8 +179,8 @@ class Setup extends Command
     private function formatConfigData(array $connect): array
     {
         $scope = [
-            'scope' => $this->defaultScope ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : ScopeInterface::SCOPE_STORE,
-            'id' => $this->defaultScope ? "0" : $this->getStoreId($connect['data']['name'])
+            'scope' => $this->defaultScope ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : ScopeInterface::SCOPE_STORES,
+            'id' => $this->defaultScope ? self::DEFAULT_SCOPE : $this->getStoreId($connect['data']['name'])
         ];
 
         $config = [];
@@ -197,7 +189,7 @@ class Setup extends Command
                 'path' => $path,
                 'value' => $path === self::XML_PATH_API_KEY ? $this->apiKey : $connect['data']['id'],
                 'scope' => $path === self::XML_PATH_API_KEY ? ScopeConfigInterface::SCOPE_TYPE_DEFAULT : $scope['scope'],
-                'scope_id' => $path === self::XML_PATH_API_KEY ? "0" : $scope['id']
+                'scope_id' => $path === self::XML_PATH_API_KEY ? self::DEFAULT_SCOPE : $scope['id']
             ];
         }
 
@@ -238,7 +230,13 @@ class Setup extends Command
         );
 
         foreach($configData as $config) {
-            $this->setConfigData($output, $config['path'], $config['value'], $config['scope'], $config['scope_id']);
+            $this->setConfigData(
+                $output,
+                $config['path'],
+                $config['value'],
+                $config['scope'],
+                $config['scope_id']
+            );
         }
 
         return Cli::RETURN_SUCCESS;

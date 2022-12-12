@@ -77,7 +77,11 @@ class Connect extends Action
                 $this->config->getApiKey()
             );
 
-            if (!in_array($this->config->getConnectId(), $validConnectIds)) {
+            $connectId = $this->config->getConnectId(
+                (int)$this->getRequest()->getParam('store')
+            );
+
+            if (!in_array($connectId, $validConnectIds)) {
                 $this->logger->critical(
                     __(self::INVALID_LABEL)
                 );

@@ -82,7 +82,7 @@ class SignaliseConfig
     {
         $connectId = $this->scopeConfig->getValue(
             self::XML_PATH_CONNECT_ID,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             $storeId
         );
 
