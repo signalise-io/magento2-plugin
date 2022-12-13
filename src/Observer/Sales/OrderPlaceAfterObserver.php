@@ -57,7 +57,7 @@ class OrderPlaceAfterObserver implements ObserverInterface
             $order = $observer->getEvent()->getData('order');
             $dto   = $this->orderDataObjectHelper->create($order, $eventName);
 
-            $this->orderPublisher->execute($dto);
+            $this->orderPublisher->execute($dto, (string)$order->getStoreId());
         } catch (Exception $e) {
             $this->logger->critical(
                 $e->getMessage()

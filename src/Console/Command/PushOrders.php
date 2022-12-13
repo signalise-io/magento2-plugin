@@ -76,7 +76,7 @@ class PushOrders extends Command
         try {
             $dto = $this->orderDataObjectHelper->create($order);
 
-            $this->orderPublisher->execute($dto);
+            $this->orderPublisher->execute($dto, (string)$order->getStoreId());
 
             $output->writeln(
                 sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())

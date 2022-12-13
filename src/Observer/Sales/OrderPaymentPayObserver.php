@@ -58,7 +58,7 @@ class OrderPaymentPayObserver implements ObserverInterface
 
             $dto = $this->orderDataObjectHelper->create($invoice->getOrder(), $eventName);
 
-            $this->orderPublisher->execute($dto);
+            $this->orderPublisher->execute($dto, (string)$invoice->getStoreId());
         } catch (Exception $e) {
             $this->logger->critical(
                 $e->getMessage()

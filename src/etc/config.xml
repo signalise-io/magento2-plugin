@@ -1,15 +1,15 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
-        <signalise_plugin>
+        <signalise_api_settings>
             <connection>
-                <api_url/>
+                <api_url>https://signalise.io</api_url>
                 <api_key/>
                 <connect_id/>
             </connection>
             <debug>
                 <development/>
             </debug>
-        </signalise_plugin>
+        </signalise_api_settings>
     </default>
 </config>

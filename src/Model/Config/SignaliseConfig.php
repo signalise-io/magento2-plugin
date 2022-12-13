@@ -31,7 +31,7 @@ class SignaliseConfig
     {
         $apiKey = $this->scopeConfig->getValue(
             self::XML_PATH_API_URL,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             $storeId
         );
 
@@ -51,7 +51,7 @@ class SignaliseConfig
     {
         $apiKey = $this->scopeConfig->getValue(
             self::XML_PATH_API_KEY,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             $storeId
         );
 
@@ -68,7 +68,7 @@ class SignaliseConfig
     {
         $events = $this->scopeConfig->getValue(
             self::XML_PATH_ACTIVE_EVENTS,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             Store::DEFAULT_STORE_ID
         );
 
@@ -82,7 +82,7 @@ class SignaliseConfig
     {
         $connectId = $this->scopeConfig->getValue(
             self::XML_PATH_CONNECT_ID,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             $storeId
         );
 
@@ -99,7 +99,7 @@ class SignaliseConfig
     {
         return (bool)$this->scopeConfig->getValue(
             self::XML_PATH_DEVELOPMENT,
-            ScopeInterface::SCOPE_STORE,
+            ScopeInterface::SCOPE_STORES,
             Store::DEFAULT_STORE_ID
         );
     }

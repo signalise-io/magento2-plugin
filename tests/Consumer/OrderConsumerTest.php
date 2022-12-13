@@ -12,10 +12,10 @@ namespace Signalise\Plugin\Test\Consumer;
 use Magento\Framework\Exception\LocalizedException;
 use PHPUnit\Framework\TestCase;
 use Signalise\PhpClient\Client\ApiClient;
-use Signalise\PhpClient\Exception\ResponseException;
 use Signalise\Plugin\Consumer\OrderConsumer;
 use Signalise\Plugin\Logger\Logger;
 use Signalise\Plugin\Model\Config\SignaliseConfig;
+use Magento\Framework\Serialize\Serializer\Json;
 
 /**
  * @coversDefaultClass \Signalise\Plugin\Consumer\OrderConsumer
@@ -25,7 +25,7 @@ class OrderConsumerTest extends TestCase
     private const STATUS_CREATED               = 201;
     private const STATUS_UNPROCESSABLE_CONTENT = 422;
     private const STATUS_BAD_REQUEST           = 400;
-    private const SIGNALISE_API_URL            = 'https://signalise.com';
+    private const SIGNALISE_API_URL            = 'https://signalise.io';
 
     /**
      * @covers ::__construct
@@ -53,10 +53,33 @@ class OrderConsumerTest extends TestCase
                 $serializedData,
                 $responseMessage
             ),
-            $this->createMock(Logger::class)
+            $this->createMock(Logger::class),
+            $this->createJsonMock($serializedData, $statusCode)
         );
 
         $subject->processMessage($serializedData);
+    }
+
+    private function createJsonMock(
+        string $serializedData,
+        int $statusCode
+    ): Json {
+        $json = $this->createMock(Json::class);
+
+        $json->expects(self::STATUS_BAD_REQUEST === $statusCode ? self::never() : self::once())
+            ->method('unserialize')
+            ->willReturn(
+                [
+                    'records' => [],
+                    'store_id' => 3
+                ]
+            );
+
+        $json->expects(self::STATUS_BAD_REQUEST === $statusCode ? self::never() : self::once())
+            ->method('serialize')
+            ->willReturn($serializedData);
+
+        return $json;
     }
 
     private function createSignaliseConfigMock(

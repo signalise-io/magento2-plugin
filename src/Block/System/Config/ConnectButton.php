@@ -39,7 +39,11 @@ class ConnectButton extends Field
 
     public function getAjaxUrl(): string
     {
-        return $this->getUrl('signalise_api_settings/ajax/connect');
+       return $this->getUrl(
+           'signalise_api_settings/ajax/connect', [
+               'store' => $this->_request->getParam('store', 0)
+           ]
+       );
     }
 
     /**
