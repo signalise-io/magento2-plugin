@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
-<exchange name="signalise" type="topic" connection="db">
-    <binding id="SignaliseOrderPushBinding"
+<exchange name="magento" type="topic" connection="amqp">
+    <binding id="signalise.order.push"
              topic="signalise.order.push"
              destinationType="queue"
              destination="signalise.order.push"/>
