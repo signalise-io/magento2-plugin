@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Signalise\Plugin\Helper;
 
 use DateTime;
+use DateTimeZone;
 use Exception;
 use Magento\Framework\DataObject;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
@@ -70,8 +71,14 @@ class OrderDataObjectHelper
      */
     private function createFormattedDate(?string $createdAt): string
     {
-        return $this->timezone->date(
-            new DateTime($createdAt ?? 'now'),
-        )->format('Y-m-d H:i:s');
+       $date = $this->timezone->date(
+           new DateTime($createdAt ?? 'now')
+       );
+
+       $date->setTimezone(
+            new DateTimeZone('UTC')
+       );
+
+       return $date->format('Y-m-d H:i:s');
     }
 }
