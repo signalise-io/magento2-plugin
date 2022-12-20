@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Exception;
 use InvalidArgumentException;
 use Magento\Framework\Console\Cli;
@@ -13,7 +16,6 @@ use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
-use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 use Signalise\Plugin\Publisher\OrderPublisher;
@@ -26,14 +28,13 @@ use Signalise\Plugin\Logger\Logger;
 class PushOrders extends Command
 {
     private const DEFAULT_COMMAND_NAME              = 'signalise:push-orders';
-    private const DEFAULT_COMMAND_DESCRIPTION       = 'Push all orders or specific order to Signalise Queue.';
+    private const DEFAULT_COMMAND_DESCRIPTION       = 'Push orders with/without filter to the Signalise queue.';
     private const OPTION_STORE_CODE                 = 'store';
     private const OPTION_STORE_CODE_DESCRIPTION     = 'Select specific store by store code.';
     private const OPTION_CREATED_BEFORE             = 'created-before';
-    private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date';
+    private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date using relative times';
     private const OPTION_CREATED_AFTER              = 'created-after';
-    private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date';
-    private const PUBLISH_INFO                      = '<info>Published: %s order(s) to the Signalise queue</info>';
+    private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
 
     private int $totalOrders;
 
@@ -103,10 +104,10 @@ class PushOrders extends Command
         parent::configure();
     }
 
-    private function fetchStoreByCode(?string $storeCode): ?StoreInterface
+    private function fetchStoreIdByCode(?string $storeCode): ?string
     {
         try {
-            return $this->storeRepository->get($storeCode);
+            return (string)$this->storeRepository->get($storeCode)->getId();
         } catch (NoSuchEntityException) {
             return null;
         }
@@ -117,27 +118,17 @@ class PushOrders extends Command
         ?string $endDate,
         ?string $storeId
     ): void {
-        if ($startDate !== null && !$this->isValidDate($startDate)) {
-            throw new InvalidArgumentException(
-                sprintf('Start date is not a valid date: %s', $startDate)
-            );
-        }
-
-        if ($endDate !== null && !$this->isValidDate($endDate)) {
-            throw new InvalidArgumentException(
-                sprintf('End date is not a valid date: %s', $endDate)
-            );
-        }
-
         $orderCollection = $this->collectionFactory->create();
 
-        /**
-         * @todo bug fix if startDate & endDate = null, it will receive 0.
-         */
-        $orderCollection->addFieldToFilter('created_at', array('gteq' => $startDate));
-        $orderCollection->addFieldToFilter('created_at', array('lteq' => $endDate));
+        if($startDate !== null) {
+            $orderCollection->addFieldToFilter('created_at', ['gteq' => $startDate]);
+        }
 
-        if($storeId) {
+        if($endDate !== null) {
+            $orderCollection->addFieldToFilter('created_at', ['lteq' => $endDate]);
+        }
+
+        if($storeId !== null) {
             $orderCollection->addFilter('store_id', $storeId, 'eq');
         }
 
@@ -150,10 +141,7 @@ class PushOrders extends Command
         $this->totalOrders = $orderCollection->count();
     }
 
-    /**
-     * @param $args
-     */
-    public function callback($args): void
+    public function callback(array $args): void
     {
         /** @var Order $order */
         $order = $this->orderRepository->get(
@@ -176,13 +164,23 @@ class PushOrders extends Command
         }
     }
 
-    private function isValidDate(string $date): bool
+    private function createDateFromInput(InputInterface $input, string $option): ?string
     {
-        if (date_create_from_format('Y-m-d', $date) === false) {
-            return false;
+        $date = $input->getOption($option);
+
+        if (!$date) {
+            return null;
         }
 
-        return true;
+        try {
+            return DateTimeImmutable::createFromMutable(
+                new DateTime($date, new DateTimeZone('UTC'))
+            )->format('Y-m-d H:i:s');
+        } catch (Exception) {
+            throw new InvalidArgumentException(
+                sprintf('%s is not a valid date: %s', $option, $date)
+            );
+        }
     }
 
     /**
@@ -192,19 +190,37 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
-        $store = $this->fetchStoreByCode(
+        $storeId = $this->fetchStoreIdByCode(
             $input->getOption(self::OPTION_STORE_CODE)
         );
 
+        $createBeforeDate = $this->createDateFromInput(
+            $input,
+            self::OPTION_CREATED_BEFORE
+        );
+
+        $createAfterDate = $this->createDateFromInput(
+            $input,
+            self::OPTION_CREATED_AFTER
+        );
+
+        $output->writeln(
+            sprintf("<comment>Filter set: created-before= %s | created-after= %s | storeId= %s</comment>",
+                $createBeforeDate,
+                $createAfterDate,
+                $storeId
+            )
+        );
+
         $this->fetchOrders(
-            $input->getOption(self::OPTION_CREATED_BEFORE),
-            $input->getOption(self::OPTION_CREATED_AFTER),
-            (string)$store?->getId()
+            $createBeforeDate,
+            $createAfterDate,
+            $storeId
         );
 
         $output->writeln(
             sprintf(
-                self::PUBLISH_INFO, $this->totalOrders
+                '<info>Published: %s order(s) to the Signalise queue</info>', $this->totalOrders
             )
         );
 
