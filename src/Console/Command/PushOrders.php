@@ -12,9 +12,8 @@ use InvalidArgumentException;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\ResourceModel\Iterator;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
@@ -38,7 +37,7 @@ class PushOrders extends Command
 
     private int $totalOrders;
 
-    private OrderRepositoryInterface $orderRepository;
+    private OrderRepositoryInterfaceFactory $orderRepositoryFactory;
 
     private OrderPublisher $orderPublisher;
 
@@ -52,30 +51,26 @@ class PushOrders extends Command
 
     private Iterator $iterator;
 
-    private Collection $collection;
-
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
+        OrderRepositoryInterfaceFactory $orderRepositoryFactory,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
         StoreRepositoryInterface $storeRepository,
         Iterator $iterator,
         Logger $logger,
-        Collection $collection,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-        $this->orderRepository       = $orderRepository;
-        $this->orderPublisher        = $orderPublisher;
-        $this->orderDataObjectHelper = $orderDataObjectHelper;
-        $this->collectionFactory     = $collectionFactory;
-        $this->logger                = $logger;
-        $this->storeRepository       = $storeRepository;
-        $this->iterator              = $iterator;
-        $this->collection            = $collection;
+        $this->orderRepositoryFactory = $orderRepositoryFactory;
+        $this->orderPublisher         = $orderPublisher;
+        $this->orderDataObjectHelper  = $orderDataObjectHelper;
+        $this->collectionFactory      = $collectionFactory;
+        $this->logger                 = $logger;
+        $this->storeRepository        = $storeRepository;
+        $this->iterator               = $iterator;
     }
 
     protected function configure(): void
@@ -134,7 +129,7 @@ class PushOrders extends Command
 
         $this->iterator
             ->walk(
-                $this->collection->getSelect(),
+                $orderCollection->getSelect(),
                 [[$this, 'callback']]
             );
 
@@ -143,8 +138,9 @@ class PushOrders extends Command
 
     public function callback(array $args): void
     {
+        $orderRepository = $this->orderRepositoryFactory->create();
         /** @var Order $order */
-        $order = $this->orderRepository->get(
+        $order = $orderRepository->get(
             $args['row']['entity_id']
         );
 
