@@ -9,20 +9,22 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
 use InvalidArgumentException;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
 use Magento\Sales\Model\Order;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
+use Signalise\Plugin\Model\Order\SignaliseOrderRepository;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Signalise\Plugin\Logger\Logger;
+use Magento\Sales\Api\OrderRepositoryInterface;
 
 class PushOrders extends Command
 {
@@ -34,43 +36,40 @@ class PushOrders extends Command
     private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date using relative times';
     private const OPTION_CREATED_AFTER              = 'created-after';
     private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
-
-    private int $totalOrders;
-
-    private OrderRepositoryInterfaceFactory $orderRepositoryFactory;
+    private const OPTION_PAGE_SIZE = 'page-size';
+    private const OPTION_CURRENT_PAGE = 'current-page';
 
     private OrderPublisher $orderPublisher;
-
     private OrderDataObjectHelper $orderDataObjectHelper;
-
-    private CollectionFactory $collectionFactory;
-
     private Logger $logger;
-
     private StoreRepositoryInterface $storeRepository;
-
     private Iterator $iterator;
+    private SignaliseOrderRepository $signaliseOrderRepository;
+    private SearchCriteriaBuilder $searchCriteriaBuilder;
+    private OrderRepositoryInterface $orderRepository;
 
     public function __construct(
-        OrderRepositoryInterfaceFactory $orderRepositoryFactory,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
-        CollectionFactory $collectionFactory,
         StoreRepositoryInterface $storeRepository,
+        SearchCriteriaBuilder $searchCriteriaBuilder,
         Iterator $iterator,
+        OrderRepositoryInterface $orderRepository,
+        SignaliseOrderRepository $signaliseOrderRepository,
         Logger $logger,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-        $this->orderRepositoryFactory = $orderRepositoryFactory;
-        $this->orderPublisher         = $orderPublisher;
-        $this->orderDataObjectHelper  = $orderDataObjectHelper;
-        $this->collectionFactory      = $collectionFactory;
-        $this->logger                 = $logger;
-        $this->storeRepository        = $storeRepository;
-        $this->iterator               = $iterator;
+        $this->orderPublisher           = $orderPublisher;
+        $this->orderDataObjectHelper    = $orderDataObjectHelper;
+        $this->logger                   = $logger;
+        $this->storeRepository          = $storeRepository;
+        $this->iterator                 = $iterator;
+        $this->signaliseOrderRepository = $signaliseOrderRepository;
+        $this->searchCriteriaBuilder    = $searchCriteriaBuilder;
+        $this->orderRepository          = $orderRepository;
     }
 
     protected function configure(): void
@@ -96,6 +95,22 @@ class PushOrders extends Command
             self::OPTION_CREATED_AFTER_DESCRIPTION
         );
 
+        $this->addOption(
+            self::OPTION_PAGE_SIZE,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            '',
+            1000
+        );
+
+        $this->addOption(
+            self::OPTION_CURRENT_PAGE,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            '',
+            1
+        );
+
         parent::configure();
     }
 
@@ -111,37 +126,45 @@ class PushOrders extends Command
     public function fetchOrders(
         ?string $startDate,
         ?string $endDate,
-        ?string $storeId
+        ?string $storeId,
+        int $pageSize,
+        int $currentPage
     ): void {
-        $orderCollection = $this->collectionFactory->create();
+        $searchCriteria = $this->searchCriteriaBuilder
+            ->setPageSize($pageSize)
+            ->setCurrentPage($currentPage);
 
         if($startDate !== null) {
-            $orderCollection->addFieldToFilter('created_at', ['gteq' => $startDate]);
+            $searchCriteria->addFilter('created_at', $startDate, 'gteq');
         }
 
         if($endDate !== null) {
-            $orderCollection->addFieldToFilter('created_at', ['lteq' => $endDate]);
+            $searchCriteria->addFilter('created_at', $endDate, 'lteq');
         }
 
         if($storeId !== null) {
-            $orderCollection->addFilter('store_id', $storeId, 'eq');
+            $searchCriteria->addFilter('store_id', $storeId);
         }
 
-        $this->iterator
-            ->walk(
-                $orderCollection->getSelect(),
-                [[$this, 'callback']]
-            );
+        $orders = $this->orderRepository->getList($searchCriteria->create());
 
-        $this->totalOrders = $orderCollection->count();
+        dd(count($orders->getItems()));
+        //#todo add symfony process logic
     }
 
-    public function callback(array $args): void
+    private function walkOrders($orders)
     {
-        $orderRepository = $this->orderRepositoryFactory->create();
-        /** @var Order $order */
-        $order = $orderRepository->get(
-            $args['row']['entity_id']
+        $this->iterator
+            ->walk(
+                $orders->getSelect(),
+                [[$this, 'callback']]
+            );
+    }
+
+    private function callback(array $args): void
+    {
+        $order = $this->signaliseOrderRepository->getOrderById(
+            (int)$args['row']['entity_id']
         );
 
         $this->pushOrderToQueue($order);
@@ -211,13 +234,9 @@ class PushOrders extends Command
         $this->fetchOrders(
             $createBeforeDate,
             $createAfterDate,
-            $storeId
-        );
-
-        $output->writeln(
-            sprintf(
-                '<info>Published: %s order(s) to the Signalise queue</info>', $this->totalOrders
-            )
+            $storeId,
+            (int)$input->getOption(self::OPTION_PAGE_SIZE),
+            (int)$input->getOption(self::OPTION_CURRENT_PAGE)
         );
 
         return Cli::RETURN_SUCCESS;
