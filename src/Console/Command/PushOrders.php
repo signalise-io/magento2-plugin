@@ -48,6 +48,8 @@ class PushOrders extends Command
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private OrderRepositoryInterface $orderRepository;
 
+    private OutputInterface $output;
+
     public function __construct(
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
@@ -129,7 +131,7 @@ class PushOrders extends Command
         ?string $storeId,
         int $pageSize,
         int $currentPage
-    ): void {
+    ): array {
         $searchCriteria = $this->searchCriteriaBuilder
             ->setPageSize($pageSize)
             ->setCurrentPage($currentPage);
@@ -148,8 +150,13 @@ class PushOrders extends Command
 
         $orders = $this->orderRepository->getList($searchCriteria->create());
 
-        dd(count($orders->getItems()));
-        //#todo add symfony process logic
+        $this->output->writeln(
+            sprintf(
+                'pageSize: %d currentPage: %d', $pageSize, $currentPage
+            )
+        );
+
+        return $orders->getItems();
     }
 
     private function walkOrders($orders)
@@ -209,6 +216,8 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
+        $this->output = $output;
+
         $storeId = $this->fetchStoreIdByCode(
             $input->getOption(self::OPTION_STORE_CODE)
         );
@@ -231,13 +240,17 @@ class PushOrders extends Command
             )
         );
 
-        $this->fetchOrders(
+        $currentPage = (int)$input->getOption(self::OPTION_CURRENT_PAGE);
+
+        while (count($orders = $this->fetchOrders(
             $createBeforeDate,
             $createAfterDate,
             $storeId,
             (int)$input->getOption(self::OPTION_PAGE_SIZE),
-            (int)$input->getOption(self::OPTION_CURRENT_PAGE)
-        );
+            $currentPage++
+        )) > 0) {
+            $this->walkOrders($orders);
+        }
 
         return Cli::RETURN_SUCCESS;
     }
