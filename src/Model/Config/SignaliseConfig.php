@@ -72,7 +72,7 @@ class SignaliseConfig
             Store::DEFAULT_STORE_ID
         );
 
-        return explode(',', $events);
+        return explode(',', $events ?? '');
     }
 
     /**
