@@ -6,6 +6,7 @@
                 <api_url>https://signalise.io</api_url>
                 <api_key/>
                 <connect_id/>
+                <active_events></active_events>
             </connection>
             <debug>
                 <development/>
