@@ -8,10 +8,13 @@ use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
+use Generator;
 use InvalidArgumentException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\Data\OrderInterface;
+use Magento\Sales\Api\Data\OrderSearchResultInterface;
 use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
 use Magento\Sales\Model\Order;
 use Magento\Store\Api\StoreRepositoryInterface;
@@ -121,7 +124,7 @@ class PushOrders extends Command
         ?string $storeId,
         int $pageSize,
         int $currentPage
-    ) {
+    ): OrderSearchResultInterface {
         $searchCriteria = $this->searchCriteriaBuilder
             ->setPageSize($pageSize)
             ->setCurrentPage($currentPage);
@@ -138,14 +141,16 @@ class PushOrders extends Command
             $searchCriteria->addFilter('store_id', $storeId);
         }
 
-        $orders = $this->orderRepository->getList($searchCriteria->create());
+        return $this->orderRepository->getList($searchCriteria->create());
+    }
 
-        ///** @var Order $order */
-        //foreach($orders as $order) {
-        //    $this->pushOrderToQueue($order);
-        //
-        //    yield $order;
-        //}
+    private function walkOrders(OrderSearchResultInterface $orders): Generator {
+        /** @var Order $order */
+        foreach($orders as $order) {
+            $this->pushOrderToQueue($order);
+
+            yield $order;
+        }
     }
 
     private function pushOrderToQueue(Order $order): void
@@ -209,13 +214,17 @@ class PushOrders extends Command
             )
         );
 
-        $this->fetchOrders(
-            $createBeforeDate,
-            $createAfterDate,
-            $storeId,
-            (int)$input->getOption(self::OPTION_PAGE_SIZE),
-            (int)$input->getOption(self::OPTION_CURRENT_PAGE)
-        );
+        $currentPage = (int)$input->getOption(self::OPTION_CURRENT_PAGE);
+
+        while (count($orders = $this->fetchOrders(
+                $createBeforeDate,
+                $createAfterDate,
+                $storeId,
+                (int)$input->getOption(self::OPTION_PAGE_SIZE),
+                $currentPage++
+            )) > 0) {
+            $this->walkOrders($orders);
+        }
 
         return Cli::RETURN_SUCCESS;
     }
