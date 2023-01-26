@@ -12,12 +12,10 @@ use InvalidArgumentException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
 use Magento\Sales\Model\Order;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
-use Signalise\Plugin\Model\Order\SignaliseOrderRepository;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -36,27 +34,23 @@ class PushOrders extends Command
     private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date using relative times';
     private const OPTION_CREATED_AFTER              = 'created-after';
     private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
-    private const OPTION_PAGE_SIZE = 'page-size';
-    private const OPTION_CURRENT_PAGE = 'current-page';
+    private const OPTION_PAGE_SIZE                  = 'page-size';
+    private const OPTION_CURRENT_PAGE               = 'current-page';
 
     private OrderPublisher $orderPublisher;
     private OrderDataObjectHelper $orderDataObjectHelper;
-    private Logger $logger;
     private StoreRepositoryInterface $storeRepository;
-    private Iterator $iterator;
-    private SignaliseOrderRepository $signaliseOrderRepository;
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private OrderRepositoryInterface $orderRepository;
+    private Logger $logger;
 
     public function __construct(
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
         StoreRepositoryInterface $storeRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        Iterator $iterator,
-        OrderRepositoryInterface $orderRepository,
-        SignaliseOrderRepository $signaliseOrderRepository,
         Logger $logger,
+        OrderRepositoryInterface $orderRepository,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -64,12 +58,10 @@ class PushOrders extends Command
         $this->setDescription($description);
         $this->orderPublisher           = $orderPublisher;
         $this->orderDataObjectHelper    = $orderDataObjectHelper;
-        $this->logger                   = $logger;
         $this->storeRepository          = $storeRepository;
-        $this->iterator                 = $iterator;
-        $this->signaliseOrderRepository = $signaliseOrderRepository;
         $this->searchCriteriaBuilder    = $searchCriteriaBuilder;
         $this->orderRepository          = $orderRepository;
+        $this->logger = $logger;
     }
 
     protected function configure(): void
@@ -118,7 +110,7 @@ class PushOrders extends Command
     {
         try {
             return (string)$this->storeRepository->get($storeCode)->getId();
-        } catch (NoSuchEntityException) {
+        } catch (NoSuchEntityException $e) {
             return null;
         }
     }
@@ -129,7 +121,7 @@ class PushOrders extends Command
         ?string $storeId,
         int $pageSize,
         int $currentPage
-    ): void {
+    ) {
         $searchCriteria = $this->searchCriteriaBuilder
             ->setPageSize($pageSize)
             ->setCurrentPage($currentPage);
@@ -148,26 +140,12 @@ class PushOrders extends Command
 
         $orders = $this->orderRepository->getList($searchCriteria->create());
 
-        dd(count($orders->getItems()));
-        //#todo add symfony process logic
-    }
-
-    private function walkOrders($orders)
-    {
-        $this->iterator
-            ->walk(
-                $orders->getSelect(),
-                [[$this, 'callback']]
-            );
-    }
-
-    private function callback(array $args): void
-    {
-        $order = $this->signaliseOrderRepository->getOrderById(
-            (int)$args['row']['entity_id']
-        );
-
-        $this->pushOrderToQueue($order);
+        ///** @var Order $order */
+        //foreach($orders as $order) {
+        //    $this->pushOrderToQueue($order);
+        //
+        //    yield $order;
+        //}
     }
 
     private function pushOrderToQueue(Order $order): void
@@ -195,7 +173,7 @@ class PushOrders extends Command
             return DateTimeImmutable::createFromMutable(
                 new DateTime($date, new DateTimeZone('UTC'))
             )->format('Y-m-d H:i:s');
-        } catch (Exception) {
+        } catch (Exception $e) {
             throw new InvalidArgumentException(
                 sprintf('%s is not a valid date: %s', $option, $date)
             );
