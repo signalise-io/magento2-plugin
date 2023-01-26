@@ -8,14 +8,11 @@ use DateTime;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
-use Generator;
 use InvalidArgumentException;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Sales\Api\Data\OrderInterface;
-use Magento\Sales\Api\Data\OrderSearchResultInterface;
-use Magento\Sales\Api\OrderRepositoryInterfaceFactory;
+use Magento\Sales\Api\Data\OrderInterfaceFactory;
 use Magento\Sales\Model\Order;
 use Magento\Store\Api\StoreRepositoryInterface;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
@@ -24,7 +21,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Magento\Framework\Model\ResourceModel\Iterator;
 use Signalise\Plugin\Logger\Logger;
+use Magento\Sales\Model\ResourceModel\Order\Collection;
 use Magento\Sales\Api\OrderRepositoryInterface;
 
 class PushOrders extends Command
@@ -46,6 +45,9 @@ class PushOrders extends Command
     private SearchCriteriaBuilder $searchCriteriaBuilder;
     private OrderRepositoryInterface $orderRepository;
     private Logger $logger;
+    private Iterator $iterator;
+    private Collection $collection;
+    private OrderInterfaceFactory $orderInterfaceFactory;
 
     public function __construct(
         OrderPublisher $orderPublisher,
@@ -53,6 +55,9 @@ class PushOrders extends Command
         StoreRepositoryInterface $storeRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         Logger $logger,
+        Iterator $iterator,
+        OrderInterfaceFactory $orderInterfaceFactory,
+        Collection $collection,
         OrderRepositoryInterface $orderRepository,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
@@ -65,6 +70,9 @@ class PushOrders extends Command
         $this->searchCriteriaBuilder    = $searchCriteriaBuilder;
         $this->orderRepository          = $orderRepository;
         $this->logger = $logger;
+        $this->iterator = $iterator;
+        $this->collection = $collection;
+        $this->orderInterfaceFactory = $orderInterfaceFactory;
     }
 
     protected function configure(): void
@@ -121,36 +129,36 @@ class PushOrders extends Command
     public function fetchOrders(
         ?string $startDate,
         ?string $endDate,
-        ?string $storeId,
-        int $pageSize,
-        int $currentPage
-    ): OrderSearchResultInterface {
-        $searchCriteria = $this->searchCriteriaBuilder
-            ->setPageSize($pageSize)
-            ->setCurrentPage($currentPage);
+        ?string $storeId
+    ): void {
 
-        if($startDate !== null) {
-            $searchCriteria->addFilter('created_at', $startDate, 'gteq');
-        }
+        /**
+         *  For blackfire debugging.
+         */
+        //$this->collection->addAttributeToFilter(
+        //    'entity_id', ['eq' => '2323']
+        //);
 
-        if($endDate !== null) {
-            $searchCriteria->addFilter('created_at', $endDate, 'lteq');
-        }
-
-        if($storeId !== null) {
-            $searchCriteria->addFilter('store_id', $storeId);
-        }
-
-        return $this->orderRepository->getList($searchCriteria->create());
+        $this
+            ->iterator
+            ->walk(
+                $this->collection->getSelect(),
+                [[$this, 'walkOrders']]
+            );
     }
 
-    private function walkOrders(OrderSearchResultInterface $orders): Generator {
+    public function walkOrders(array $args)
+    {
         /** @var Order $order */
-        foreach($orders as $order) {
-            $this->pushOrderToQueue($order);
+        $order = $this->orderInterfaceFactory->create();
 
-            yield $order;
-        }
+        $order->setData(
+            $args['row']
+        );
+
+        $this->pushOrderToQueue($order);
+
+        unset($order);
     }
 
     private function pushOrderToQueue(Order $order): void
@@ -214,17 +222,11 @@ class PushOrders extends Command
             )
         );
 
-        $currentPage = (int)$input->getOption(self::OPTION_CURRENT_PAGE);
-
-        while (count($orders = $this->fetchOrders(
-                $createBeforeDate,
-                $createAfterDate,
-                $storeId,
-                (int)$input->getOption(self::OPTION_PAGE_SIZE),
-                $currentPage++
-            )) > 0) {
-            $this->walkOrders($orders);
-        }
+        $this->fetchOrders(
+            $createBeforeDate,
+            $createAfterDate,
+            $storeId
+        );
 
         return Cli::RETURN_SUCCESS;
     }
