@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
-use Exception;
+use Throwable;
 use Magento\Framework\Console\Cli;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -79,11 +79,12 @@ class PushOrders extends Command
             $this->orderPublisher->execute($dto, (string)$order->getStoreId());
 
             $output->writeln(
-                sprintf('Order_id: %s successfully added to the Signalise queue.', $order->getEntityId())
+                sprintf('Order ID %s successfully added to the Signalise queue.', $order->getEntityId())
             );
-        } catch (Exception $e) {
+        } catch (Throwable $t) {
+            $output->writeln(sprintf('Order ID %s could not be added to the queue; %s', $order->getEntityId(), $t->getMessage());
             $this->logger->critical(
-                $e->getMessage()
+                $t->getMessage()
             );
         }
     }
