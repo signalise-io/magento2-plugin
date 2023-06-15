@@ -82,7 +82,7 @@ class PushOrders extends Command
                 sprintf('Order ID %s successfully added to the Signalise queue.', $order->getEntityId())
             );
         } catch (Throwable $t) {
-            $output->writeln(sprintf('Order ID %s could not be added to the queue; %s', $order->getEntityId(), $t->getMessage());
+            $output->writeln(sprintf('Order ID %s could not be added to the queue; %s', $order->getEntityId(), $t->getMessage()));
             $this->logger->critical(
                 $t->getMessage()
             );
