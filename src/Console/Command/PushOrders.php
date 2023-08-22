@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
-use Throwable;
+use Exception;
 use Magento\Framework\Console\Cli;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
@@ -40,6 +40,7 @@ class PushOrders extends Command
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
         Logger $logger,
+        \Magento\Framework\Model\ResourceModel\Iterator $iterator,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -50,6 +51,7 @@ class PushOrders extends Command
         $this->orderDataObjectHelper = $orderDataObjectHelper;
         $this->collectionFactory     = $collectionFactory;
         $this->logger                = $logger;
+        $this->iterator              = $iterator;
     }
 
     protected function configure(): void
@@ -71,20 +73,25 @@ class PushOrders extends Command
         return $order;
     }
 
-    private function pushOrderToQueue(Order $order, OutputInterface $output)
+    private function convert($size)
+    {
+        $unit=array('b','kb','mb','gb','tb','pb');
+        return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
+    }
+
+    private function pushOrderToQueue($order, OutputInterface $output)
     {
         try {
             $dto = $this->orderDataObjectHelper->create($order);
 
-            $this->orderPublisher->execute($dto, (string)$order->getStoreId());
+            $this->orderPublisher->execute($dto, (string)$order['store_id']);
 
             $output->writeln(
-                sprintf('Order ID %s successfully added to the Signalise queue.', $order->getEntityId())
+                sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order['entity_id'], $this->convert(memory_get_usage(true)))
             );
-        } catch (Throwable $t) {
-            $output->writeln(sprintf('Order ID %s could not be added to the queue; %s', $order->getEntityId(), $t->getMessage()));
+        } catch (Exception $e) {
             $this->logger->critical(
-                $t->getMessage()
+                $e->getMessage()
             );
         }
     }
@@ -96,6 +103,7 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
+        $this->output = $output;
         $orderId = $input->getArgument('order_id');
         if ($orderId) {
             $order = $this->fetchOrder(
@@ -107,10 +115,20 @@ class PushOrders extends Command
             return Cli::RETURN_SUCCESS;
         }
 
-        foreach ($this->collectionFactory->create() as $order) {
-            $this->pushOrderToQueue($order, $output);
-        }
+        $collection = $this->collectionFactory->create();
+        $this->iterator->walk(
+            $collection->getSelect(),
+            [[$this, 'callback']]
+        );
 
         return Cli::RETURN_SUCCESS;
+    }
+
+    public function callback($args)
+    {
+        $this->pushOrderToQueue($args['row'], $this->output);
+        $this->output->writeln(
+            sprintf('Memory used %s', $this->convert(memory_get_usage(true)))
+        );
     }
 }
