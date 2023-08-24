@@ -41,6 +41,7 @@ class PushOrders extends Command
         CollectionFactory $collectionFactory,
         Logger $logger,
         \Magento\Framework\Model\ResourceModel\Iterator $iterator,
+        \Magento\Framework\DB\Helper $coreResourceHelper,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -52,6 +53,7 @@ class PushOrders extends Command
         $this->collectionFactory     = $collectionFactory;
         $this->logger                = $logger;
         $this->iterator              = $iterator;
+        $this->_coreResourceHelper   = $coreResourceHelper;
     }
 
     protected function configure(): void
@@ -81,18 +83,34 @@ class PushOrders extends Command
 
     private function pushOrderToQueue($order, OutputInterface $output)
     {
-        try {
-            $dto = $this->orderDataObjectHelper->create($order);
+        if (is_object($order)) {
+            try {
+                $dto = $this->orderDataObjectHelper->create($order);
 
-            $this->orderPublisher->execute($dto, (string)$order['store_id']);
+                $this->orderPublisher->execute($dto, (string)$order->getStoreId());
 
-            $output->writeln(
-                sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order['entity_id'], $this->convert(memory_get_usage(true)))
-            );
-        } catch (Exception $e) {
-            $this->logger->critical(
-                $e->getMessage()
-            );
+                $output->writeln(
+                    sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order->getEntityId(), $this->convert(memory_get_usage(true)))
+                );
+            } catch (Exception $e) {
+                $this->logger->critical(
+                    $e->getMessage()
+                );
+            }
+        } else {
+            try {
+                $dto = $this->orderDataObjectHelper->create($order);
+
+                $this->orderPublisher->execute($dto, (string)$order['store_id']);
+
+                $output->writeln(
+                    sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order['entity_id'], $this->convert(memory_get_usage(true)))
+                );
+            } catch (Exception $e) {
+                $this->logger->critical(
+                    $e->getMessage()
+                );
+            }
         }
     }
 
@@ -116,10 +134,30 @@ class PushOrders extends Command
         }
 
         $collection = $this->collectionFactory->create();
-        $this->iterator->walk(
-            $collection->getSelect(),
-            [[$this, 'callback']]
-        );
+
+        $useIterator = true;
+
+        if (!$useIterator) {
+            $collection->setPageSize(100);
+
+            for ($currentPage = 1; $currentPage <= $collection->getLastPageNumber(); $currentPage++) {
+                $collection->clear();
+                $collection->setCurPage($currentPage);
+                foreach ($collection as $order) {
+                    $this->pushOrderToQueue($order, $output);
+                    $this->output->writeln(
+                        sprintf('Memory used %s', $this->convert(memory_get_usage(true)))
+                    );
+                }
+            }
+        } else {
+            $this->_addAddressFields($collection);
+            $this->_addPaymentFields($collection);
+            $this->iterator->walk(
+                $collection->getSelect(),
+                [[$this, 'callback']]
+            );
+        }
 
         return Cli::RETURN_SUCCESS;
     }
@@ -130,5 +168,77 @@ class PushOrders extends Command
         $this->output->writeln(
             sprintf('Memory used %s', $this->convert(memory_get_usage(true)))
         );
+    }
+
+    protected function _addAddressFields($collection)
+    {
+        $aliases = [
+            'billing' => 'billing_o_a',
+            'shipping' => 'shipping_o_a'
+        ];
+        $joinTable = $collection->getTable('sales_order_address');
+
+        foreach ($aliases as $type => $aliasName) {
+            $collection->addFilterToMap(
+                "{$type}_firstname",
+                "{$aliasName}.firstname"
+            )->addFilterToMap(
+                "{$type}_lastname",
+                "{$aliasName}.lastname"
+            )->addFilterToMap(
+                "{$type}_telephone",
+                "{$aliasName}.telephone"
+            )->addFilterToMap(
+                "{$type}_street",
+                "{$aliasName}.street"
+            )->addFilterToMap(
+                "{$type}_city",
+                "{$aliasName}.city"
+            )->addFilterToMap(
+                "{$type}_country_id",
+                "{$aliasName}.country_id"
+            )->addFilterToMap(
+                "{$type}_postcode",
+                "{$aliasName}.postcode"
+            );
+
+            $collection->getSelect()->joinLeft(
+                [$aliasName => $joinTable],
+                "(main_table.entity_id = {$aliasName}.parent_id" .
+                " AND {$aliasName}.address_type = '{$type}')",
+                [
+                    "{$aliasName}.firstname as {$type}_firstname",
+                    "{$aliasName}.lastname as {$type}_lastname",
+                    "{$aliasName}.telephone as {$type}_telephone",
+                    "{$aliasName}.postcode as {$type}_postcode"
+                ]
+            );
+        }
+
+        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        return $collection;
+    }
+
+    protected function _addPaymentFields($collection)
+    {
+        $joinTable = $collection->getTable('sales_order_payment');
+        $paymentAliasName = 'payment';
+        $collection->addFilterToMap(
+            'payment_method',
+            $paymentAliasName . '.method'
+        )->addFilterToMap(
+            'payment_amount_paid',
+            $paymentAliasName . '.amount_paid'
+        );
+        $collection->getSelect()->joinLeft(
+            [$paymentAliasName => $joinTable],
+            "main_table.entity_id = {$paymentAliasName}.parent_id",
+            [
+                $paymentAliasName . '.method as payment_method',
+                $paymentAliasName . '.amount_paid as payment_amount_paid'
+            ]
+        );
+        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        return $collection;
     }
 }
