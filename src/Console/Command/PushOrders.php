@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
-use Exception;
+use Throwable;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\DataObject;
 use Magento\Sales\Model\Order;
@@ -73,9 +73,9 @@ class PushOrders extends Command
             $output->writeln(
                 sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order->getEntityId(), $this->convert(memory_get_usage(true)))
             );
-        } catch (Exception $e) {
+        } catch (Throwable $t) {
             $this->logger->critical(
-                $e->getMessage()
+                $t->getMessage()
             );
         }
     }
