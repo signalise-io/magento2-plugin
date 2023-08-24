@@ -6,7 +6,7 @@ namespace Signalise\Plugin\Console\Command;
 
 use Exception;
 use Magento\Framework\Console\Cli;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Framework\DataObject;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
@@ -24,8 +24,6 @@ class PushOrders extends Command
     private const ARGUMENT_ORDER              = 'order_id';
     private const ARGUMENT_ORDER_DESCRIPTION  = 'Select the order you want to send to Signalise';
 
-    private OrderRepositoryInterface $orderRepository;
-
     private OrderPublisher $orderPublisher;
 
     private OrderDataObjectHelper $orderDataObjectHelper;
@@ -35,7 +33,6 @@ class PushOrders extends Command
     private Logger $logger;
 
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
@@ -47,7 +44,6 @@ class PushOrders extends Command
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-        $this->orderRepository       = $orderRepository;
         $this->orderPublisher        = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
         $this->collectionFactory     = $collectionFactory;
@@ -67,50 +63,20 @@ class PushOrders extends Command
         parent::configure();
     }
 
-    private function fetchOrder(int $orderId): Order
+    private function pushOrderToQueue(DataObject $order, OutputInterface $output)
     {
-        /** @var Order $order */
-        $order = $this->orderRepository->get($orderId);
+        try {
+            $dto = $this->orderDataObjectHelper->create($order);
 
-        return $order;
-    }
+            $this->orderPublisher->execute($dto, (string)$order->getStoreId());
 
-    private function convert($size)
-    {
-        $unit=array('b','kb','mb','gb','tb','pb');
-        return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
-    }
-
-    private function pushOrderToQueue($order, OutputInterface $output)
-    {
-        if (is_object($order)) {
-            try {
-                $dto = $this->orderDataObjectHelper->create($order);
-
-                $this->orderPublisher->execute($dto, (string)$order->getStoreId());
-
-                $output->writeln(
-                    sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order->getEntityId(), $this->convert(memory_get_usage(true)))
-                );
-            } catch (Exception $e) {
-                $this->logger->critical(
-                    $e->getMessage()
-                );
-            }
-        } else {
-            try {
-                $dto = $this->orderDataObjectHelper->create($order);
-
-                $this->orderPublisher->execute($dto, (string)$order['store_id']);
-
-                $output->writeln(
-                    sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order['entity_id'], $this->convert(memory_get_usage(true)))
-                );
-            } catch (Exception $e) {
-                $this->logger->critical(
-                    $e->getMessage()
-                );
-            }
+            $output->writeln(
+                sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order->getEntityId(), $this->convert(memory_get_usage(true)))
+            );
+        } catch (Exception $e) {
+            $this->logger->critical(
+                $e->getMessage()
+            );
         }
     }
 
@@ -123,51 +89,28 @@ class PushOrders extends Command
     ): int {
         $this->output = $output;
         $orderId = $input->getArgument('order_id');
-        if ($orderId) {
-            $order = $this->fetchOrder(
-                (int)$orderId
-            );
-
-            $this->pushOrderToQueue($order, $output);
-
-            return Cli::RETURN_SUCCESS;
-        }
-
         $collection = $this->collectionFactory->create();
 
-        $useIterator = true;
-
-        if (!$useIterator) {
-            $collection->setPageSize(100);
-
-            for ($currentPage = 1; $currentPage <= $collection->getLastPageNumber(); $currentPage++) {
-                $collection->clear();
-                $collection->setCurPage($currentPage);
-                foreach ($collection as $order) {
-                    $this->pushOrderToQueue($order, $output);
-                    $this->output->writeln(
-                        sprintf('Memory used %s', $this->convert(memory_get_usage(true)))
-                    );
-                }
-            }
-        } else {
-            $this->_addAddressFields($collection);
-            $this->_addPaymentFields($collection);
-            $this->iterator->walk(
-                $collection->getSelect(),
-                [[$this, 'callback']]
-            );
+        if ($orderId) {
+            $collection->addFieldToFilter('entity_id', $orderId);
         }
+
+        $this->_addAddressFields($collection);
+        $this->_addPaymentFields($collection);
+        $this->iterator->walk(
+            $collection->getSelect(),
+            [[$this, 'callback']]
+        );
 
         return Cli::RETURN_SUCCESS;
     }
 
     public function callback($args)
     {
-        $this->pushOrderToQueue($args['row'], $this->output);
-        $this->output->writeln(
-            sprintf('Memory used %s', $this->convert(memory_get_usage(true)))
-        );
+        $order = new DataObject();
+        $order->setData($args['row']);
+
+        $this->pushOrderToQueue($order, $this->output);
     }
 
     protected function _addAddressFields($collection)
@@ -192,14 +135,14 @@ class PushOrders extends Command
                 "{$type}_street",
                 "{$aliasName}.street"
             )->addFilterToMap(
-                "{$type}_city",
-                "{$aliasName}.city"
-            )->addFilterToMap(
                 "{$type}_country_id",
                 "{$aliasName}.country_id"
             )->addFilterToMap(
                 "{$type}_postcode",
                 "{$aliasName}.postcode"
+            )->addFilterToMap(
+                "{$type}_city",
+                "{$aliasName}.city"
             );
 
             $collection->getSelect()->joinLeft(
@@ -210,7 +153,10 @@ class PushOrders extends Command
                     "{$aliasName}.firstname as {$type}_firstname",
                     "{$aliasName}.lastname as {$type}_lastname",
                     "{$aliasName}.telephone as {$type}_telephone",
-                    "{$aliasName}.postcode as {$type}_postcode"
+                    "{$aliasName}.postcode as {$type}_postcode",
+                    "{$aliasName}.street as {$type}_street",
+                    "{$aliasName}.city as {$type}_city",
+                    "{$aliasName}.country_id as {$type}_country_id"
                 ]
             );
         }
