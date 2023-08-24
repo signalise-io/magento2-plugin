@@ -7,6 +7,8 @@ namespace Signalise\Plugin\Console\Command;
 use Throwable;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\DataObject;
+use Magento\Framework\DB\Helper as ResourceHelper;
+use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
@@ -37,8 +39,8 @@ class PushOrders extends Command
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
         Logger $logger,
-        \Magento\Framework\Model\ResourceModel\Iterator $iterator,
-        \Magento\Framework\DB\Helper $coreResourceHelper,
+        Iterator $iterator,
+        ResourceHelper $coreResourceHelper,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
