@@ -10,7 +10,6 @@ use Exception;
 use Magento\Framework\DataObject;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
-use Magento\Ui\Config\Data;
 
 class OrderDataObjectHelper
 {
