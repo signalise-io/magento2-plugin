@@ -28,39 +28,72 @@ class OrderDataObjectHelper
     /**
      * @throws Exception
      */
-    public function create($orderArray, ?string $eventName = ''): DataObject
+    public function create($order, ?string $eventName = ''): DataObject
     {
         $dto = new DataObject();
-        $order = new DataObject();
-        $order->setData($orderArray);
 
-        return $dto->setData(
-            [
-                'id' => $order->getIncrementId(),
-                'total_products' => $order->getTotalItemCount(),
-                'total_costs' => $order->getGrandTotal(),
-                'valuta' => $order->getOrderCurrencyCode(),
-                'tax' => $order->getTaxAmount(),
-                //'payment_method' => $order->getPayment()->getMethod(),
-                //'payment_costs' => $order->getPayment()->getAmountPaid() ?? '',
-                'shipping_method' => $order->getShippingMethod(),
-                'shipping_costs' => $order->getShippingAmount(),
-                //'zip' => $order->getShippingAddress()->getPostcode(),
-//                'street' => $this->getStreetOrHouseNumber(
-//                    $order->getShippingAddress()->getStreet()[0] ?? '',
-//                    self::STREET_PATTERN
-//                ),
-//                'house_number' => $this->getStreetOrHouseNumber(
-//                    $order->getShippingAddress()->getStreet()[0] ?? '',
-//                    self::HOUSE_NUMBER_PATTERN
-//                ),
-//                'city' => $order->getShippingAddress()->getCity(),
-//                'country' => $order->getShippingAddress()->getCountryId(),
-                'status' => $order->getStatus(),
-                'date' => $this->createFormattedDate($order->getCreatedAt()),
-                'tag' => $eventName
-            ]
-        );
+        if (!is_object($order)) {
+            $orderObject = new DataObject();
+            $orderObject->setData($order);
+            $order = $orderObject;
+
+            return $dto->setData(
+                [
+                    'id' => $order->getIncrementId(),
+                    'total_products' => $order->getTotalItemCount(),
+                    'total_costs' => $order->getGrandTotal(),
+                    'valuta' => $order->getOrderCurrencyCode(),
+                    'tax' => $order->getTaxAmount(),
+                    'payment_method' => $order->getPaymentMethod(),
+                    'payment_costs' => $order->getPaymentAmountPaid() ?? '',
+                    'shipping_method' => $order->getShippingMethod(),
+                    'shipping_costs' => $order->getShippingAmount(),
+                    'zip' => $order->getShippingPostcode(),
+                    'street' => $this->getStreetOrHouseNumber(
+                        $order->getShippinStreet()[0] ?? '',
+                        self::STREET_PATTERN
+                    ),
+                    'house_number' => $this->getStreetOrHouseNumber(
+                        $order->getShippingStreet()[0] ?? '',
+                        self::HOUSE_NUMBER_PATTERN
+                    ),
+                    'city' => $order->getShippingCity(),
+                    'country' => $order->getShippingCountryId(),
+                    'status' => $order->getStatus(),
+                    'date' => $this->createFormattedDate($order->getCreatedAt()),
+                    'tag' => $eventName
+                ]
+            );
+        } else {
+            return $dto->setData(
+                [
+                    'id' => $order->getIncrementId(),
+                    'total_products' => $order->getTotalItemCount(),
+                    'total_costs' => $order->getGrandTotal(),
+                    'valuta' => $order->getOrderCurrencyCode(),
+                    'tax' => $order->getTaxAmount(),
+                    'payment_method' => $order->getPayment()->getMethod(),
+                    'payment_costs' => $order->getPayment()->getAmountPaid() ?? '',
+                    'shipping_method' => $order->getShippingMethod(),
+                    'shipping_costs' => $order->getShippingAmount(),
+                    'zip' => $order->getShippingAddress()->getPostcode(),
+                    'street' => $this->getStreetOrHouseNumber(
+                        $order->getShippingAddress()->getStreet()[0] ?? '',
+                        self::STREET_PATTERN
+                    ),
+                    'house_number' => $this->getStreetOrHouseNumber(
+                        $order->getShippingAddress()->getStreet()[0] ?? '',
+                        self::HOUSE_NUMBER_PATTERN
+                    ),
+                    'city' => $order->getShippingAddress()->getCity(),
+                    'country' => $order->getShippingAddress()->getCountryId(),
+                    'status' => $order->getStatus(),
+                    'date' => $this->createFormattedDate($order->getCreatedAt()),
+                    'tag' => $eventName
+                ]
+            );
+        }
+
     }
 
     private function getStreetOrHouseNumber(string $street, string $pattern): string
