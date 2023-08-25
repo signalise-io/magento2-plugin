@@ -28,37 +28,38 @@ class OrderDataObjectHelper
     /**
      * @throws Exception
      */
-    public function create(Order $order, ?string $eventName = ''): DataObject
+    public function create(DataObject $order, ?string $eventName = ''): DataObject
     {
         $dto = new DataObject();
 
         return $dto->setData(
             [
                 'id' => $order->getIncrementId(),
-                'total_products' => $order->getItems() ? count($order->getItems()) : 0,
+                'total_products' => $order->getTotalItemCount(),
                 'total_costs' => $order->getGrandTotal(),
                 'valuta' => $order->getOrderCurrencyCode(),
                 'tax' => $order->getTaxAmount(),
-                'payment_method' => $order->getPayment()->getMethod(),
-                'payment_costs' => $order->getPayment()->getAmountPaid() ?? '',
+                'payment_method' => $order->getPaymentMethod(),
+                'payment_costs' => $order->getPaymentAmountPaid() ?? '',
                 'shipping_method' => $order->getShippingMethod(),
                 'shipping_costs' => $order->getShippingAmount(),
-                'zip' => $order->getShippingAddress()->getPostcode(),
+                'zip' => $order->getShippingPostcode(),
                 'street' => $this->getStreetOrHouseNumber(
-                    $order->getShippingAddress()->getStreet()[0] ?? '',
+                    $order->getShippinStreet()[0] ?? '',
                     self::STREET_PATTERN
                 ),
                 'house_number' => $this->getStreetOrHouseNumber(
-                    $order->getShippingAddress()->getStreet()[0] ?? '',
+                    $order->getShippingStreet()[0] ?? '',
                     self::HOUSE_NUMBER_PATTERN
                 ),
-                'city' => $order->getShippingAddress()->getCity(),
-                'country' => $order->getShippingAddress()->getCountryId(),
+                'city' => $order->getShippingCity(),
+                'country' => $order->getShippingCountryId(),
                 'status' => $order->getStatus(),
                 'date' => $this->createFormattedDate($order->getCreatedAt()),
                 'tag' => $eventName
             ]
         );
+
     }
 
     private function getStreetOrHouseNumber(string $street, string $pattern): string

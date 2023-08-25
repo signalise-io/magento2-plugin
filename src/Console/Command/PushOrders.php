@@ -6,7 +6,9 @@ namespace Signalise\Plugin\Console\Command;
 
 use Throwable;
 use Magento\Framework\Console\Cli;
-use Magento\Sales\Api\OrderRepositoryInterface;
+use Magento\Framework\DataObject;
+use Magento\Framework\DB\Helper as ResourceHelper;
+use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
@@ -24,8 +26,6 @@ class PushOrders extends Command
     private const ARGUMENT_ORDER              = 'order_id';
     private const ARGUMENT_ORDER_DESCRIPTION  = 'Select the order you want to send to Signalise';
 
-    private OrderRepositoryInterface $orderRepository;
-
     private OrderPublisher $orderPublisher;
 
     private OrderDataObjectHelper $orderDataObjectHelper;
@@ -35,21 +35,23 @@ class PushOrders extends Command
     private Logger $logger;
 
     public function __construct(
-        OrderRepositoryInterface $orderRepository,
         OrderPublisher $orderPublisher,
         OrderDataObjectHelper $orderDataObjectHelper,
         CollectionFactory $collectionFactory,
         Logger $logger,
+        Iterator $iterator,
+        ResourceHelper $coreResourceHelper,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
         parent::__construct($name);
         $this->setDescription($description);
-        $this->orderRepository       = $orderRepository;
         $this->orderPublisher        = $orderPublisher;
         $this->orderDataObjectHelper = $orderDataObjectHelper;
         $this->collectionFactory     = $collectionFactory;
         $this->logger                = $logger;
+        $this->iterator              = $iterator;
+        $this->_coreResourceHelper   = $coreResourceHelper;
     }
 
     protected function configure(): void
@@ -63,15 +65,7 @@ class PushOrders extends Command
         parent::configure();
     }
 
-    private function fetchOrder(int $orderId): Order
-    {
-        /** @var Order $order */
-        $order = $this->orderRepository->get($orderId);
-
-        return $order;
-    }
-
-    private function pushOrderToQueue(Order $order, OutputInterface $output)
+    private function pushOrderToQueue(DataObject $order, OutputInterface $output)
     {
         try {
             $dto = $this->orderDataObjectHelper->create($order);
@@ -79,10 +73,9 @@ class PushOrders extends Command
             $this->orderPublisher->execute($dto, (string)$order->getStoreId());
 
             $output->writeln(
-                sprintf('Order ID %s successfully added to the Signalise queue.', $order->getEntityId())
+                sprintf('Order_id: %s successfully added to the Signalise queue - %s memory used', $order->getEntityId(), $this->convert(memory_get_usage(true)))
             );
         } catch (Throwable $t) {
-            $output->writeln(sprintf('Order ID %s could not be added to the queue; %s', $order->getEntityId(), $t->getMessage()));
             $this->logger->critical(
                 $t->getMessage()
             );
@@ -96,21 +89,104 @@ class PushOrders extends Command
         InputInterface $input,
         OutputInterface $output
     ): int {
+        $this->output = $output;
         $orderId = $input->getArgument('order_id');
+        $collection = $this->collectionFactory->create();
+
         if ($orderId) {
-            $order = $this->fetchOrder(
-                (int)$orderId
-            );
-
-            $this->pushOrderToQueue($order, $output);
-
-            return Cli::RETURN_SUCCESS;
+            $collection->addFieldToFilter('entity_id', $orderId);
         }
 
-        foreach ($this->collectionFactory->create() as $order) {
-            $this->pushOrderToQueue($order, $output);
-        }
+        $this->_addAddressFields($collection);
+        $this->_addPaymentFields($collection);
+        $this->iterator->walk(
+            $collection->getSelect(),
+            [[$this, 'callback']]
+        );
 
         return Cli::RETURN_SUCCESS;
+    }
+
+    public function callback($args)
+    {
+        $order = new DataObject();
+        $order->setData($args['row']);
+
+        $this->pushOrderToQueue($order, $this->output);
+    }
+
+    protected function _addAddressFields($collection)
+    {
+        $aliases = [
+            'billing' => 'billing_o_a',
+            'shipping' => 'shipping_o_a'
+        ];
+        $joinTable = $collection->getTable('sales_order_address');
+
+        foreach ($aliases as $type => $aliasName) {
+            $collection->addFilterToMap(
+                "{$type}_firstname",
+                "{$aliasName}.firstname"
+            )->addFilterToMap(
+                "{$type}_lastname",
+                "{$aliasName}.lastname"
+            )->addFilterToMap(
+                "{$type}_telephone",
+                "{$aliasName}.telephone"
+            )->addFilterToMap(
+                "{$type}_street",
+                "{$aliasName}.street"
+            )->addFilterToMap(
+                "{$type}_country_id",
+                "{$aliasName}.country_id"
+            )->addFilterToMap(
+                "{$type}_postcode",
+                "{$aliasName}.postcode"
+            )->addFilterToMap(
+                "{$type}_city",
+                "{$aliasName}.city"
+            );
+
+            $collection->getSelect()->joinLeft(
+                [$aliasName => $joinTable],
+                "(main_table.entity_id = {$aliasName}.parent_id" .
+                " AND {$aliasName}.address_type = '{$type}')",
+                [
+                    "{$aliasName}.firstname as {$type}_firstname",
+                    "{$aliasName}.lastname as {$type}_lastname",
+                    "{$aliasName}.telephone as {$type}_telephone",
+                    "{$aliasName}.postcode as {$type}_postcode",
+                    "{$aliasName}.street as {$type}_street",
+                    "{$aliasName}.city as {$type}_city",
+                    "{$aliasName}.country_id as {$type}_country_id"
+                ]
+            );
+        }
+
+        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        return $collection;
+    }
+
+    protected function _addPaymentFields($collection)
+    {
+        $joinTable = $collection->getTable('sales_order_payment');
+        $paymentAliasName = 'payment';
+        $collection->addFilterToMap(
+            'payment_method',
+            $paymentAliasName . '.method'
+        )->addFilterToMap(
+            'payment_amount_paid',
+            $paymentAliasName . '.amount_paid'
+        );
+        $collection->getSelect()->joinLeft(
+            [$paymentAliasName => $joinTable],
+            "main_table.entity_id = {$paymentAliasName}.parent_id",
+            [
+                $paymentAliasName . '.method as payment_method',
+                $paymentAliasName . '.amount_paid as payment_amount_paid'
+            ]
+        );
+        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        return $collection;
     }
 }
