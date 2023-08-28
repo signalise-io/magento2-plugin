@@ -125,26 +125,8 @@ class PushOrders extends Command
 
         foreach ($aliases as $type => $aliasName) {
             $collection->addFilterToMap(
-                "{$type}_firstname",
-                "{$aliasName}.firstname"
-            )->addFilterToMap(
-                "{$type}_lastname",
-                "{$aliasName}.lastname"
-            )->addFilterToMap(
-                "{$type}_telephone",
-                "{$aliasName}.telephone"
-            )->addFilterToMap(
-                "{$type}_street",
-                "{$aliasName}.street"
-            )->addFilterToMap(
                 "{$type}_country_id",
                 "{$aliasName}.country_id"
-            )->addFilterToMap(
-                "{$type}_postcode",
-                "{$aliasName}.postcode"
-            )->addFilterToMap(
-                "{$type}_city",
-                "{$aliasName}.city"
             );
 
             $collection->getSelect()->joinLeft(
@@ -152,12 +134,6 @@ class PushOrders extends Command
                 "(main_table.entity_id = {$aliasName}.parent_id" .
                 " AND {$aliasName}.address_type = '{$type}')",
                 [
-                    "{$aliasName}.firstname as {$type}_firstname",
-                    "{$aliasName}.lastname as {$type}_lastname",
-                    "{$aliasName}.telephone as {$type}_telephone",
-                    "{$aliasName}.postcode as {$type}_postcode",
-                    "{$aliasName}.street as {$type}_street",
-                    "{$aliasName}.city as {$type}_city",
                     "{$aliasName}.country_id as {$type}_country_id"
                 ]
             );
