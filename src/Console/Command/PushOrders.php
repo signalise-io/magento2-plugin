@@ -38,6 +38,8 @@ class PushOrders extends Command
     private const OPTION_CREATED_AFTER              = 'after';
     private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
 
+    private OutputInterface $output;
+
     private OrderPublisher $orderPublisher;
 
     private OrderDataObjectHelper $orderDataObjectHelper;
