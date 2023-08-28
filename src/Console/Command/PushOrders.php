@@ -33,6 +33,10 @@ class PushOrders extends Command
     private CollectionFactory $collectionFactory;
 
     private Logger $logger;
+    
+    private Iterator $iterator;
+
+    private ResourceHelper $coreResourceHelper;
 
     public function __construct(
         OrderPublisher $orderPublisher,
@@ -51,7 +55,7 @@ class PushOrders extends Command
         $this->collectionFactory     = $collectionFactory;
         $this->logger                = $logger;
         $this->iterator              = $iterator;
-        $this->_coreResourceHelper   = $coreResourceHelper;
+        $this->coreResourceHelper    = $coreResourceHelper;
     }
 
     protected function configure(): void
@@ -139,7 +143,7 @@ class PushOrders extends Command
             );
         }
 
-        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        $this->coreResourceHelper->prepareColumnsList($collection->getSelect());
         return $collection;
     }
 
@@ -162,7 +166,7 @@ class PushOrders extends Command
                 $paymentAliasName . '.amount_paid as payment_amount_paid'
             ]
         );
-        $this->_coreResourceHelper->prepareColumnsList($collection->getSelect());
+        $this->coreResourceHelper->prepareColumnsList($collection->getSelect());
         return $collection;
     }
 }
