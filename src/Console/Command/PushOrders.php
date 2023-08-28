@@ -32,13 +32,11 @@ class PushOrders extends Command
     private const ARGUMENT_ORDER                    = 'order_id';
     private const ARGUMENT_ORDER_DESCRIPTION        = 'Select the order you want to send to Signalise';
     private const OPTION_STORE_CODE                 = 'store';
-    private const OPTION_STORE_CODE_DESCRIPTION     = 'Select specific store by store code.';
+    private const OPTION_STORE_CODE_DESCRIPTION     = 'Select specific store by store code';
     private const OPTION_CREATED_BEFORE             = 'before';
     private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date using relative times';
     private const OPTION_CREATED_AFTER              = 'after';
     private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
-    private const OPTION_PAGE_SIZE                  = 'page-size';
-    private const OPTION_CURRENT_PAGE               = 'current-page';
 
     private OrderPublisher $orderPublisher;
 
@@ -103,22 +101,6 @@ class PushOrders extends Command
             null,
             InputOption::VALUE_OPTIONAL,
             self::OPTION_CREATED_AFTER_DESCRIPTION
-        );
-
-        $this->addOption(
-            self::OPTION_PAGE_SIZE,
-            null,
-            InputOption::VALUE_OPTIONAL,
-            '',
-            1000
-        );
-
-        $this->addOption(
-            self::OPTION_CURRENT_PAGE,
-            null,
-            InputOption::VALUE_OPTIONAL,
-            '',
-            1
         );
 
         parent::configure();
