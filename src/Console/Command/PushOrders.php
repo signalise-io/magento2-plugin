@@ -4,27 +4,39 @@ declare(strict_types=1);
 
 namespace Signalise\Plugin\Console\Command;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeZone;
 use Throwable;
+use InvalidArgumentException;
 use Magento\Framework\Console\Cli;
 use Magento\Framework\DataObject;
 use Magento\Framework\DB\Helper as ResourceHelper;
 use Magento\Framework\Model\ResourceModel\Iterator;
 use Magento\Sales\Model\Order;
+use Magento\Store\Api\StoreRepositoryInterface;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactory;
 use Signalise\Plugin\Helper\OrderDataObjectHelper;
 use Signalise\Plugin\Publisher\OrderPublisher;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Signalise\Plugin\Logger\Logger;
 
 class PushOrders extends Command
 {
-    private const DEFAULT_COMMAND_NAME        = 'signalise:push-orders';
-    private const DEFAULT_COMMAND_DESCRIPTION = 'Push all orders or specific order to Signalise Queue.';
-    private const ARGUMENT_ORDER              = 'order_id';
-    private const ARGUMENT_ORDER_DESCRIPTION  = 'Select the order you want to send to Signalise';
+    private const DEFAULT_COMMAND_NAME              = 'signalise:push-orders-to-queue';
+    private const DEFAULT_COMMAND_DESCRIPTION       = 'Push orders with/without filter to the Signalise queue.';
+    private const ARGUMENT_ORDER                    = 'order_id';
+    private const ARGUMENT_ORDER_DESCRIPTION        = 'Select the order you want to send to Signalise';
+    private const OPTION_STORE_CODE                 = 'store';
+    private const OPTION_STORE_CODE_DESCRIPTION     = 'Select specific store by store code';
+    private const OPTION_CREATED_BEFORE             = 'before';
+    private const OPTION_CREATED_BEFORE_DESCRIPTION = 'Select filter before date using relative times';
+    private const OPTION_CREATED_AFTER              = 'after';
+    private const OPTION_CREATED_AFTER_DESCRIPTION  = 'Select filter after date using relative times';
 
     private OrderPublisher $orderPublisher;
 
@@ -33,10 +45,12 @@ class PushOrders extends Command
     private CollectionFactory $collectionFactory;
 
     private Logger $logger;
-    
+
     private Iterator $iterator;
 
     private ResourceHelper $coreResourceHelper;
+
+    private StoreRepositoryInterface $storeRepository;
 
     public function __construct(
         OrderPublisher $orderPublisher,
@@ -45,6 +59,7 @@ class PushOrders extends Command
         Logger $logger,
         Iterator $iterator,
         ResourceHelper $coreResourceHelper,
+        StoreRepositoryInterface $storeRepository,
         string $name = self::DEFAULT_COMMAND_NAME,
         string $description = self::DEFAULT_COMMAND_DESCRIPTION
     ) {
@@ -56,6 +71,7 @@ class PushOrders extends Command
         $this->logger                = $logger;
         $this->iterator              = $iterator;
         $this->coreResourceHelper    = $coreResourceHelper;
+        $this->storeRepository       = $storeRepository;
     }
 
     protected function configure(): void
@@ -64,6 +80,27 @@ class PushOrders extends Command
             self::ARGUMENT_ORDER,
             InputArgument::OPTIONAL,
             self::ARGUMENT_ORDER_DESCRIPTION
+        );
+
+        $this->addOption(
+            self::OPTION_STORE_CODE,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            self::OPTION_STORE_CODE_DESCRIPTION
+        );
+
+        $this->addOption(
+            self::OPTION_CREATED_BEFORE,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            self::OPTION_CREATED_BEFORE_DESCRIPTION
+        );
+
+        $this->addOption(
+            self::OPTION_CREATED_AFTER,
+            null,
+            InputOption::VALUE_OPTIONAL,
+            self::OPTION_CREATED_AFTER_DESCRIPTION
         );
 
         parent::configure();
@@ -94,11 +131,33 @@ class PushOrders extends Command
         OutputInterface $output
     ): int {
         $this->output = $output;
-        $orderId = $input->getArgument('order_id');
         $collection = $this->collectionFactory->create();
 
+        $orderId = $input->getArgument('order_id');
         if ($orderId) {
             $collection->addFieldToFilter('entity_id', $orderId);
+        }
+
+        $store = $input->getOption(self::OPTION_STORE_CODE);
+        if ($store) {
+            $storeId = is_numeric($store) ? $store : $this->fetchStoreIdByCode($store);
+            $collection->addFieldToFilter('store_id', $storeId);
+        }
+
+        $createBeforeDate = $this->createDateFromInput(
+            $input,
+            self::OPTION_CREATED_BEFORE
+        );
+        if ($createBeforeDate) {
+            $collection->addFieldToFilter('created_at', ['lt' => $createBeforeDate]);
+        }
+
+        $createAfterDate = $this->createDateFromInput(
+            $input,
+            self::OPTION_CREATED_AFTER
+        );
+        if ($createAfterDate) {
+            $collection->addFieldToFilter('created_at', ['gt' => $createAfterDate]);
         }
 
         $this->_addAddressFields($collection);
@@ -168,5 +227,39 @@ class PushOrders extends Command
         );
         $this->coreResourceHelper->prepareColumnsList($collection->getSelect());
         return $collection;
+    }
+
+    private function fetchStoreIdByCode(?string $storeCode): ?string
+    {
+        try {
+            return (string)$this->storeRepository->get($storeCode)->getId();
+        } catch (NoSuchEntityException $e) {
+            return null;
+        }
+    }
+
+    private function createDateFromInput(InputInterface $input, string $option): ?string
+    {
+        $date = $input->getOption($option);
+
+        if (!$date) {
+            return null;
+        }
+
+        try {
+            return DateTimeImmutable::createFromMutable(
+                new DateTime($date, new DateTimeZone('UTC'))
+            )->format('Y-m-d H:i:s');
+        } catch (Exception $e) {
+            throw new InvalidArgumentException(
+                sprintf('%s is not a valid date: %s', $option, $date)
+            );
+        }
+    }
+
+    private function convert($size)
+    {
+        $unit=array('b','kb','mb','gb','tb','pb');
+        return @round($size/pow(1024,($i=floor(log($size,1024)))),2).' '.$unit[$i];
     }
 }
